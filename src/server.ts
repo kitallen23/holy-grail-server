@@ -2,6 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import cookie from "@fastify/cookie";
+import "dotenv/config";
 
 import { authRoutes } from "./routes/auth.js";
 import { userItemsRoutes } from "./routes/userItems.js";

@@ -4,5 +4,6 @@ module.exports = {
     plugins: ["@typescript-eslint", "prettier"],
     rules: {
         "prettier/prettier": "error",
+        "no-console": ["warn", { allow: ["info", "warn", "error"] }],
     },
 };

@@ -1,0 +1,22 @@
+meta {
+  name: Set User Item Status
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/user-items/set
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "itemKey": "Greyform",
+    "found": true
+  }
+}
