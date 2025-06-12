@@ -14,6 +14,18 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         return { items: foundItems };
     });
 
+    // Get only found items
+    fastify.get("/found", { preHandler: requireAuth }, async (request) => {
+        const userId = request.user!.id;
+
+        const foundItems = await db
+            .select()
+            .from(userItems)
+            .where(and(eq(userItems.userId, userId), eq(userItems.found, true)));
+
+        return { items: foundItems };
+    });
+
     // Mark item as found/unfound
     fastify.post("/set", { preHandler: requireAuth }, async (request) => {
         const { itemKey, found } = request.body as { itemKey: string; found: boolean };
