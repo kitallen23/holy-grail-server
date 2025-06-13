@@ -102,31 +102,36 @@ type SetCategory =
     | "Tal Rasha's Wrappings"
     | "Trang-Oul's Avatar";
 
+// Label, Min value, Max value
+type ItemProp = [string, ...string[]];
+// type ItemProp = string | { description: string; props: string[] };
+
 interface BaseItem {
     name: string;
-    props: string[];
+    implicits?: ItemProp[];
+    affixes: ItemProp[];
 }
 
-interface UniqueItem extends BaseItem {
+export interface UniqueItem extends BaseItem {
     type: string;
     image: string;
     category: UniqueCategory;
 }
 
-interface SetItem extends BaseItem {
+export interface SetItem extends BaseItem {
     type: string;
     image: string;
     category: SetCategory;
 }
 
-interface Runeword extends BaseItem {
+export interface Runeword extends BaseItem {
     runes: string[];
     types: string[];
     detailTypes: string[];
     sockets: number;
 }
 
-type Items = {
+export type Items = {
     uniqueItems: Record<string, UniqueItem>;
     setItems: Record<string, SetItem>;
     runewords: Record<string, Runeword>;
