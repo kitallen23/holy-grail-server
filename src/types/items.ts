@@ -135,6 +135,9 @@ export interface SetItem extends BaseItem {
     type: string;
     image: string;
     category: SetCategory;
+    itemBonuses: Record<number | string, ItemProp>;
+    setBonuses: ItemProp[];
+    setItems: string[];
 }
 
 export interface Runeword extends BaseItem {
