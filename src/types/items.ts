@@ -76,7 +76,8 @@ type UniqueCategory =
     | "Elite Unique Necromancer Shrunken Heads"
     | "Exceptional Unique Paladin Shields"
     | "Elite Unique Paladin Shields"
-    | "Unique Sorceress Orbs"
+    | "Exceptional Unique Sorceress Orbs"
+    | "Elite Unique Sorceress Orbs"
     | "Unique Charms"
     | "Unique Jewels";
 
