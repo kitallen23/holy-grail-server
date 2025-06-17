@@ -16,7 +16,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         ],
         affixes: [
             ["5% Life Stolen per Hit"],
-            ["+20 to Defense"],
+            ["+20 Defense"],
             ["+10 to Dexterity"],
             ["Cold resist +20%"],
             ["Fire resist +20%"],
@@ -38,7 +38,7 @@ const uniqueItems: Record<string, UniqueItem> = {
             ["+10% Faster Run/Walk"],
             ["+40% Faster Hit Recovery"],
             ["Adds {{1}} Fire Damage", "3-6"],
-            ["+25 to Defense"],
+            ["+25 Defense"],
             ["+50 Defense vs. Missile"],
         ],
         category: "Unique Armor",
@@ -1548,7 +1548,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         type: "Vampirefang Belt",
         image: "items/lightbelt.gif",
         implicits: [
-            ["Defense: {{1}}", "56-63"],
+            ["Defense: 56-63"],
             ["Belt Size: +12 Slots"],
             ["Durability: 14"],
             ["Required Strength: 50"],
@@ -2504,7 +2504,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         type: "Kris",
         image: "uniques/thejadetando.gif",
         implicits: [
-            ["One-Hand Damage: {{1}}", "2 to 11"],
+            ["One-Hand Damage: 2 to 11"],
             ["Durability: 24"],
             ["Required Dexterity: 45"],
             ["Required Level: 19"],
@@ -2523,7 +2523,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         type: "Blade",
         image: "uniques/spectralshard.gif",
         implicits: [
-            ["One-Hand Damage: {{1}}", "4 to 15"],
+            ["One-Hand Damage: 4 to 15"],
             ["Durability: 24"],
             ["Required Dexterity: 51"],
             ["Required Strength: 35"],
@@ -2629,7 +2629,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         type: "Bone Knife",
         image: "uniques/wizardspike.gif",
         implicits: [
-            ["One-Hand Damage: {{1}}", "23 to 49"],
+            ["One-Hand Damage: 23 to 49"],
             ["Required Dexterity: 75"],
             ["Required Strength: 38"],
             ["Required Level: 61"],
@@ -2950,7 +2950,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         type: "Skull Cap",
         image: "uniques/tarnhelm.gif",
         implicits: [
-            ["Defense: {{1}}", "8-11"],
+            ["Defense: 8-11"],
             ["Durability: 18"],
             ["Required Strength: 15"],
             ["Required Level: 15"],
@@ -3067,7 +3067,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         type: "Bone Helm",
         image: "uniques/wormskull.gif",
         implicits: [
-            ["Defense: {{1}}", "33-36"],
+            ["Defense: 33-36"],
             ["Durability: 40"],
             ["Required Strength: 25"],
             ["Required Level: 21"],
@@ -5019,7 +5019,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/walloftheeyeless.gif",
         implicits: [
             ["Defense: {{1}}", "50-53"],
-            ["Chance to Block: {{1}}", "(40|45|50)%"],
+            ["Chance to Block: (40|45|50)%"],
             ["Smite Damage: 3 to 6"],
             ["Durability: 40"],
             ["Required Strength: 25"],
@@ -5130,7 +5130,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/tiamatsrebuke.gif",
         implicits: [
             ["Defense: {{1}}", "163-204"],
-            ["Chance to Block: {{1}}", "(38|43|48)%"],
+            ["Chance to Block: (38|43|48)%"],
             ["Smite Damage: 15 to 24"],
             ["Durability: 116"],
             ["Required Strength: 91"],
@@ -5154,7 +5154,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/lanceguard.gif",
         implicits: [
             ["Defense: {{1}}", "134-173"],
-            ["Chance to Block: {{1}}", "(37|42|47)%"],
+            ["Chance to Block: (37|42|47)%"],
             ["Smite Damage: 18 to 35"],
             ["Durability: 55"],
             ["Required Strength: 65"],
@@ -5198,7 +5198,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/lidlesswall.gif",
         implicits: [
             ["Defense: {{1}}", "271-347"],
-            ["Chance to Block: {{1}}", "(40|45|50)%"],
+            ["Chance to Block: (40|45|50)%"],
             ["Smite Damage: 14 to 20"],
             ["Durability: 70"],
             ["Required Strength: 58"],
@@ -5244,7 +5244,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/blackoakshield.gif",
         implicits: [
             ["Defense: {{1}}", "322-372"],
-            ["Chance to Block: {{1}}", "(40|45|50)%"],
+            ["Chance to Block: (40|45|50)%"],
             ["Smite Damage: 17 to 29"],
             ["Durability: 129"],
             ["Required Strength: 100"],
@@ -5291,7 +5291,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/spikethorn.gif",
         implicits: [
             ["Defense: {{1}}", "360-410"],
-            ["Chance to Block: {{1}}", "(40|45|50)%"],
+            ["Chance to Block: (40|45|50)%"],
             ["Smite Damage: 26 to 40"],
             ["Durability: 333"],
             ["Required Strength: 118"],
@@ -5312,7 +5312,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/medusasgaze.gif",
         implicits: [
             ["Defense: {{1}}", "405-453"],
-            ["Chance to Block: {{1}}", "(44|49|54)%"],
+            ["Chance to Block: (44|49|54)%"],
             ["Smite Damage: 18 to 28"],
             ["Durability: 92"],
             ["Required Strength: 219"],
@@ -5334,7 +5334,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         image: "uniques/headhuntersglory.gif",
         implicits: [
             ["Defense: {{1}}", "478-593"],
-            ["Chance to Block: {{1}}", "(40|45|50)%"],
+            ["Chance to Block: (40|45|50)%"],
             ["Smite Damage: 24 to 38"],
             ["Durability: 74"],
             ["Required Strength: 106"],
@@ -5437,7 +5437,7 @@ const uniqueItems: Record<string, UniqueItem> = {
         type: "Spetum",
         image: "uniques/lanceofyaggai.gif",
         implicits: [
-            ["Two-Hand Damage: {{1}}", "15 to 23"],
+            ["Two-Hand Damage: 15 to 23"],
             ["Durability: 28"],
             ["Required Dexterity: 35"],
             ["Required Strength: 54"],
@@ -11374,3 +11374,143 @@ export const items: Items = { uniqueItems, setItems, runewords };
 // console.log("\nTypeScript Union Types:");
 // console.log("type UniqueCategory =", uniqueCategories.map((cat) => `"${cat}"`).join(" | ") + ";");
 // console.log("type SetCategory =", setCategories.map((cat) => `"${cat}"`).join(" | ") + ";");
+
+// const checkDefenseVariables = (uniqueItems: Record<string, UniqueItem>) => {
+//     const suspiciousItems: string[] = [];
+
+//     Object.entries(uniqueItems).forEach(([key, item]) => {
+//         // Check if item is armor-related
+//         const armorCategories = [
+//             "Armor",
+//             "Belts",
+//             "Boots",
+//             "Gloves",
+//             "Helmets",
+//             "Circlets",
+//             "Pelts",
+//             "Shields",
+//         ];
+//         if (!armorCategories.some((category) => item.category.includes(category))) {
+//             return;
+//         }
+
+//         // Find defense implicit with variable
+//         const hasDefenseVariable = item.implicits.some((implicit) =>
+//             implicit[0].includes("Defense: {{1}}")
+//         );
+
+//         if (!hasDefenseVariable) {
+//             return;
+//         }
+
+//         // Check for defense-modifying affixes
+//         const hasDefenseModifier = item.affixes.some((affix) => {
+//             const affixText = affix[0];
+//             return (
+//                 affixText.includes("Defense") &&
+//                 (affixText.includes("Enhanced Defense") ||
+//                     affixText.match(/\+\d+\s+Defense/) ||
+//                     affixText.match(/\+\{\{\d\}\}\s+Defense/))
+//             );
+//         });
+
+//         // If has defense variable but no defense modifier, it's suspicious
+//         if (!hasDefenseModifier) {
+//             suspiciousItems.push(item.name);
+//         }
+//     });
+
+//     console.log("Items with potentially incorrect defense variables:");
+//     suspiciousItems.forEach((name) => console.log(`- ${name}`));
+
+//     return suspiciousItems;
+// };
+
+// checkDefenseVariables(uniqueItems);
+
+// const checkBlockChanceVariables = (uniqueItems: Record<string, UniqueItem>) => {
+//     const suspiciousItems: string[] = [];
+
+//     Object.entries(uniqueItems).forEach(([key, item]) => {
+//         // Check if item is shield-related
+//         if (!item.category.includes("Shields")) {
+//             return;
+//         }
+
+//         // Find block chance implicit with variable
+//         const hasBlockChanceVariable = item.implicits.some((implicit) =>
+//             implicit[0].includes("Chance to Block: {{1}}")
+//         );
+
+//         // Also check for single number block chance
+//         const hasSingleBlockChance = item.implicits.some((implicit) =>
+//             implicit[0].match(/Chance to Block: \d+%$/)
+//         );
+
+//         if (!hasBlockChanceVariable && !hasSingleBlockChance) {
+//             return;
+//         }
+
+//         // Check for block chance modifying affixes
+//         const hasBlockChanceModifier = item.affixes.some((affix) => {
+//             const affixText = affix[0];
+//             return (
+//                 affixText.includes("Increased Chance of Blocking") &&
+//                 (affixText.match(/\d+%\s+Increased Chance of Blocking/) ||
+//                     affixText.match(/\{\{1\}\}%\s+Increased Chance of Blocking/))
+//             );
+//         });
+
+//         // If has block chance (variable or single) but no block chance modifier, it's suspicious
+//         if (!hasBlockChanceModifier) {
+//             suspiciousItems.push(item.name);
+//         }
+//     });
+
+//     console.log("Items with potentially incorrect block chance variables:");
+//     suspiciousItems.forEach((name) => console.log(`- ${name}`));
+
+//     return suspiciousItems;
+// };
+
+// checkBlockChanceVariables(uniqueItems);
+
+// const checkDamageVariables = (uniqueItems: Record<string, UniqueItem>) => {
+//     const suspiciousItems: string[] = [];
+
+//     Object.entries(uniqueItems).forEach(([key, item]) => {
+//         // Find damage implicit with variable
+//         const hasDamageVariable = item.implicits.some(
+//             (implicit) =>
+//                 implicit[0].includes("One-Hand Damage: {{1}}") ||
+//                 implicit[0].includes("Two-Hand Damage: {{1}}") ||
+//                 implicit[0].includes("Throw Damage: {{1}}")
+//         );
+
+//         if (!hasDamageVariable) {
+//             return;
+//         }
+
+//         // Check for damage modifying affixes
+//         const hasDamageModifier = item.affixes.some((affix) => {
+//             const affixText = affix[0];
+//             return (
+//                 affixText.includes("Enhanced Damage") ||
+//                 affixText.includes("to Minimum Damage") ||
+//                 affixText.includes("to Maximum Damage")
+//             );
+//         });
+
+//         // If has damage variable but no damage modifier, it's suspicious
+//         if (!hasDamageModifier) {
+//             suspiciousItems.push(item.name);
+//         }
+//     });
+
+//     console.log("Items with potentially incorrect damage variables:");
+//     suspiciousItems.forEach((name) => console.log(`- ${name}`));
+
+//     return suspiciousItems;
+// };
+
+// checkDamageVariables(uniqueItems);
