@@ -90,7 +90,7 @@ type SetCategory =
     | "Civerb's Vestments"
     | "Cleglaw's Brace"
     | "Death's Disguise"
-    | "Hsaru's Defense"
+    | "Hsarus' Defense"
     | "Infernal Tools"
     | "Iratha's Finery"
     | "Isenhart's Armory"
