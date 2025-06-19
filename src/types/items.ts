@@ -54,7 +54,6 @@ type UniqueCategory =
     | "Unique Swords"
     | "Exceptional Unique Swords"
     | "Elite Unique Swords"
-    | "Unique Throwing Weapons"
     | "Exceptional Unique Throwing Weapons"
     | "Elite Unique Throwing Weapons"
     | "Unique Wands"
@@ -115,9 +114,44 @@ type SetCategory =
     | "Tal Rasha's Wrappings"
     | "Trang-Oul's Avatar";
 
-// Label, Min value, Max value
+type RuneItemType = "Weapons" | "Armor" | "Helms" | "Shields";
+type RuneName =
+    | "El"
+    | "Eld"
+    | "Tir"
+    | "Nef"
+    | "Eth"
+    | "Ith"
+    | "Tal"
+    | "Ral"
+    | "Ort"
+    | "Thul"
+    | "Amn"
+    | "Sol"
+    | "Shael"
+    | "Dol"
+    | "Hel"
+    | "Io"
+    | "Lum"
+    | "Ko"
+    | "Fal"
+    | "Lem"
+    | "Pul"
+    | "Um"
+    | "Mal"
+    | "Ist"
+    | "Gul"
+    | "Vex"
+    | "Ohm"
+    | "Lo"
+    | "Sur"
+    | "Ber"
+    | "Jah"
+    | "Cham"
+    | "Zod";
+
+// Main string, ...variables
 type ItemProp = [string, ...string[]];
-// type ItemProp = string | { description: string; props: string[] };
 
 interface BaseItem {
     name: string;
@@ -141,14 +175,21 @@ export interface SetItem extends BaseItem {
 }
 
 export interface Runeword extends BaseItem {
-    runes: string[];
-    types: string[];
-    detailTypes: string[];
+    runes: RuneName[];
+    types?: string[];
+    itemTypes: string[];
     sockets: number;
+}
+
+export interface Rune {
+    name: RuneName;
+    requiredLevel: number;
+    implicits: Record<RuneItemType, string>;
 }
 
 export type Items = {
     uniqueItems: Record<string, UniqueItem>;
     setItems: Record<string, SetItem>;
     runewords: Record<string, Runeword>;
+    runes: Record<string, Rune>;
 };
