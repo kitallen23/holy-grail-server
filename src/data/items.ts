@@ -6,7 +6,7 @@ import runes from "./runes";
 
 export const items: Items = { uniqueItems, setItems, runewords, runes };
 
-const uniqueCategories = [...new Set(Object.values(uniqueItems).map((item) => item.category))];
+// const uniqueCategories = [...new Set(Object.values(uniqueItems).map((item) => item.category))];
 // const setCategories = [...new Set(Object.values(setItems).map((item) => item.category))];
 
 // console.log("Unique Categories:");
@@ -16,7 +16,7 @@ const uniqueCategories = [...new Set(Object.values(uniqueItems).map((item) => it
 // console.log(setCategories.map((cat) => `"${cat}"`).join(" | "));
 
 // console.log("\nTypeScript Union Types:");
-console.log("type UniqueCategory =", uniqueCategories.map((cat) => `"${cat}"`).join(" | ") + ";");
+// console.log("type UniqueCategory =", uniqueCategories.map((cat) => `"${cat}"`).join(" | ") + ";");
 // console.log("type SetCategory =", setCategories.map((cat) => `"${cat}"`).join(" | ") + ";");
 
 // const checkDefenseVariables = (uniqueItems: Record<string, UniqueItem>) => {
