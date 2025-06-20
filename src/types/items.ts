@@ -1,5 +1,3 @@
-type ItemType = "Armor" | "Weapons";
-
 type UniqueCategory =
     | "Unique Armor"
     | "Exceptional Unique Armor"
@@ -152,6 +150,8 @@ type RuneName =
     | "Cham"
     | "Zod";
 
+type RunewordBaseType = "Weapons" | "Body Armor" | "Shields" | "Helmets";
+
 // Main string, ...variables
 type ItemProp = [string, ...string[]];
 
@@ -178,7 +178,7 @@ export interface SetItem extends BaseItem {
 
 export interface Runeword extends Omit<BaseItem, "affixes"> {
     runes: RuneName[];
-    type: ItemType;
+    type: RunewordBaseType;
     itemTypes: string[];
     sockets: number;
     affixes: ItemProp[];
