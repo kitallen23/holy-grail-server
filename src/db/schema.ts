@@ -2,9 +2,10 @@ import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
     id: text("id").primaryKey(),
-    email: text("email").notNull().unique(),
-    hashedPassword: text("hashed_password").notNull(),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
+    email: text("email"),
+    googleId: text("google_id").unique(),
+    discordId: text("discord_id").unique(),
+    createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const sessions = pgTable("sessions", {

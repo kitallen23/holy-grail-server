@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import bcrypt from "bcrypt";
+import { googleAuthURL, discordAuthURL } from "../lib/oauth.js";
 import {
     generateSessionToken,
     createSession,
@@ -8,7 +8,7 @@ import {
 } from "../lib/auth.js";
 import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { encodeBase32LowerCaseNoPadding } from "@oslojs/encoding";
 
 function generateUserId(): string {
@@ -18,67 +18,18 @@ function generateUserId(): string {
 }
 
 export async function authRoutes(fastify: FastifyInstance) {
-    // Register
-    fastify.post("/register", async (request, reply) => {
-        const { email, password } = request.body as { email: string; password: string };
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const userId = generateUserId();
-
-        try {
-            await db.insert(users).values({
-                id: userId,
-                email,
-                hashedPassword,
-            });
-
-            const token = generateSessionToken();
-            await createSession(token, userId);
-
-            reply.setCookie("session", token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
-                sameSite: "lax",
-                maxAge: 60 * 60 * 24 * 30, // 30 days
-                path: "/",
-            });
-
-            return { success: true };
-        } catch (error) {
-            console.error(`Registration error: `, error);
-            reply.code(400);
-            return { error: "Email already exists" };
-        }
+    // Google OAuth initiation
+    fastify.get("/google", async (request, reply) => {
+        const state = crypto.randomUUID();
+        reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
+        reply.redirect(googleAuthURL(state));
     });
 
-    // Login
-    fastify.post("/login", async (request, reply) => {
-        const { email, password } = request.body as { email: string; password: string };
-
-        const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
-        if (!user.length) {
-            reply.code(400);
-            return { error: "Invalid credentials" };
-        }
-
-        const validPassword = await bcrypt.compare(password, user[0].hashedPassword);
-        if (!validPassword) {
-            reply.code(400);
-            return { error: "Invalid credentials" };
-        }
-
-        const token = generateSessionToken();
-        await createSession(token, user[0].id);
-
-        reply.setCookie("session", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 30, // 30 days
-            path: "/",
-        });
-
-        return { success: true };
+    // Discord OAuth initiation
+    fastify.get("/discord", async (request, reply) => {
+        const state = crypto.randomUUID();
+        reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
+        reply.redirect(discordAuthURL(state));
     });
 
     // Logout
@@ -100,5 +51,145 @@ export async function authRoutes(fastify: FastifyInstance) {
         });
 
         return { success: true };
+    });
+
+    // Google OAuth callback
+    fastify.get("/google/callback", async (request, reply) => {
+        const { code, state } = request.query as { code: string; state: string };
+        const storedState = request.cookies.oauth_state;
+
+        if (!state || !storedState || state !== storedState) {
+            reply.code(400);
+            return { error: "Invalid state" };
+        }
+
+        // Exchange code for access token
+        const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                client_id: process.env.GOOGLE_CLIENT_ID!,
+                client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+                code,
+                grant_type: "authorization_code",
+                redirect_uri: `${process.env.BASE_URL}/auth/google/callback`,
+            }),
+        });
+
+        const tokens = await tokenResponse.json();
+
+        // Get user info
+        const userResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", {
+            headers: { Authorization: `Bearer ${tokens.access_token}` },
+        });
+
+        const googleUser = await userResponse.json();
+
+        // Find or create user
+        let user = await db
+            .select()
+            .from(users)
+            .where(or(eq(users.email, googleUser.email), eq(users.googleId, googleUser.sub)))
+            .limit(1);
+
+        if (!user.length) {
+            const userId = generateUserId();
+            await db.insert(users).values({
+                id: userId,
+                googleId: googleUser.sub,
+                email: googleUser.email,
+            });
+            user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        } else if (!user[0].googleId) {
+            // User exists with email but no googleId - link the accounts
+            await db
+                .update(users)
+                .set({ googleId: googleUser.sub })
+                .where(eq(users.id, user[0].id));
+        }
+
+        // Create session
+        const token = generateSessionToken();
+        await createSession(token, user[0].id);
+
+        reply.setCookie("session", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 30,
+            path: "/",
+        });
+
+        reply.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+    });
+
+    // Discord OAuth callback
+    fastify.get("/discord/callback", async (request, reply) => {
+        const { code, state } = request.query as { code: string; state: string };
+        const storedState = request.cookies.oauth_state;
+
+        if (!state || !storedState || state !== storedState) {
+            reply.code(400);
+            return { error: "Invalid state" };
+        }
+
+        // Exchange code for access token
+        const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                client_id: process.env.DISCORD_CLIENT_ID!,
+                client_secret: process.env.DISCORD_CLIENT_SECRET!,
+                code,
+                grant_type: "authorization_code",
+                redirect_uri: `${process.env.BASE_URL}/auth/discord/callback`,
+            }),
+        });
+
+        const tokens = await tokenResponse.json();
+
+        // Get user info
+        const userResponse = await fetch("https://discord.com/api/users/@me", {
+            headers: { Authorization: `Bearer ${tokens.access_token}` },
+        });
+
+        const discordUser = await userResponse.json();
+
+        // Find or create user
+        let user = await db
+            .select()
+            .from(users)
+            .where(or(eq(users.email, discordUser.email), eq(users.discordId, discordUser.id)))
+            .limit(1);
+
+        if (!user.length) {
+            const userId = generateUserId();
+            await db.insert(users).values({
+                id: userId,
+                discordId: discordUser.id,
+                email: discordUser.email,
+            });
+            user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+        } else if (!user[0].discordId) {
+            // User exists with email but no discordId - link the accounts
+            await db
+                .update(users)
+                .set({ discordId: discordUser.id })
+                .where(eq(users.id, user[0].id));
+        }
+
+        // Create session
+        const token = generateSessionToken();
+        await createSession(token, user[0].id);
+
+        reply.setCookie("session", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 60 * 60 * 24 * 30,
+            path: "/",
+        });
+
+        reply.redirect(process.env.CLIENT_URL || "http://localhost:5173");
     });
 }

@@ -8,6 +8,8 @@ import { authRoutes } from "./routes/auth.js";
 import { userItemsRoutes } from "./routes/userItems.js";
 import { itemsRoutes } from "./routes/items.js";
 import { runewordsRoutes } from "./routes/runewords.js";
+import { cleanupExpiredSessions } from "./lib/auth.js";
+import { optionalAuth } from "./middleware/auth.js";
 
 const fastify = Fastify({
     logger: true,
@@ -27,6 +29,9 @@ fastify.get("/health", async () => {
     return { status: "ok" };
 });
 
+// Automatically extend session whenever any endpoint is hit
+fastify.addHook("preHandler", optionalAuth);
+
 await fastify.register(authRoutes, { prefix: "/auth" });
 await fastify.register(userItemsRoutes, { prefix: "/user-items" });
 await fastify.register(itemsRoutes, { prefix: "/items" });
@@ -37,6 +42,13 @@ const start = async () => {
         const port = Number(process.env.PORT) || 3000;
         await fastify.listen({ port, host: "0.0.0.0" });
         console.info(`Server running on port ${port}`);
+
+        setInterval(
+            async () => {
+                await cleanupExpiredSessions();
+            },
+            24 * 60 * 60 * 1000
+        ); // Daily cleanup
     } catch (err) {
         fastify.log.error(err);
         process.exit(1);
