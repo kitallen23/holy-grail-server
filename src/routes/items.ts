@@ -13,8 +13,7 @@ export async function itemsRoutes(fastify: FastifyInstance) {
         const { itemKey } = request.params as { itemKey: string };
 
         // Search across all item types
-        const item =
-            items.uniqueItems[itemKey] || items.setItems[itemKey] || items.runewords[itemKey];
+        const item = items.uniqueItems[itemKey] || items.setItems[itemKey] || items.runes[itemKey];
 
         if (!item) {
             reply.code(404);
@@ -32,7 +31,7 @@ export async function itemsRoutes(fastify: FastifyInstance) {
         return { items: items.setItems };
     });
 
-    fastify.get("/runewords", async () => {
-        return { items: items.runewords };
+    fastify.get("/runes", async () => {
+        return { items: items.runes };
     });
 }

@@ -193,6 +193,5 @@ export interface Rune {
 export type Items = {
     uniqueItems: Record<string, UniqueItem>;
     setItems: Record<string, SetItem>;
-    runewords: Record<string, Runeword>;
     runes: Record<string, Rune>;
 };

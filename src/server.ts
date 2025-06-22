@@ -7,6 +7,7 @@ import "dotenv/config";
 import { authRoutes } from "./routes/auth.js";
 import { userItemsRoutes } from "./routes/userItems.js";
 import { itemsRoutes } from "./routes/items.js";
+import { runewordsRoutes } from "./routes/runewords.js";
 
 const fastify = Fastify({
     logger: true,
@@ -29,6 +30,7 @@ fastify.get("/health", async () => {
 await fastify.register(authRoutes, { prefix: "/auth" });
 await fastify.register(userItemsRoutes, { prefix: "/user-items" });
 await fastify.register(itemsRoutes, { prefix: "/items" });
+await fastify.register(runewordsRoutes, { prefix: "/runewords" });
 
 const start = async () => {
     try {

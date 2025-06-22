@@ -4,7 +4,8 @@ import setItems from "./set-items";
 import runewords from "./runewords";
 import runes from "./runes";
 
-export const items: Items = { uniqueItems, setItems, runewords, runes };
+export const items: Items = { uniqueItems, setItems, runes };
+export { runewords };
 
 // const uniqueCategories = [...new Set(Object.values(uniqueItems).map((item) => item.category))];
 // const setCategories = [...new Set(Object.values(setItems).map((item) => item.category))];
