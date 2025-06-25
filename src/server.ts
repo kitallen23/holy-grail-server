@@ -10,6 +10,7 @@ import { itemsRoutes } from "./routes/items.js";
 import { runewordsRoutes } from "./routes/runewords.js";
 import { cleanupExpiredSessions } from "./lib/auth.js";
 import { optionalAuth } from "./middleware/auth.js";
+import { HttpError } from "./types/errors.js";
 
 const fastify = Fastify({
     logger: true,
@@ -23,6 +24,23 @@ await fastify.register(cors, {
 
 await fastify.register(helmet);
 await fastify.register(cookie);
+
+fastify.setErrorHandler((error, request, reply) => {
+    if (error instanceof HttpError) {
+        return reply.code(error.statusCode).send({
+            error: error.message,
+            statusCode: error.statusCode,
+        });
+    }
+
+    // Log unexpected errors
+    fastify.log.error(error);
+
+    return reply.code(500).send({
+        error: "Internal Server Error",
+        statusCode: 500,
+    });
+});
 
 // Health check route
 fastify.get("/health", async () => {

@@ -150,10 +150,10 @@ type RuneName =
     | "Cham"
     | "Zod";
 
-type RunewordBaseType = "Weapons" | "Body Armor" | "Shields" | "Helmets";
+export type RunewordBaseType = "Weapons" | "Body Armor" | "Shields" | "Helmets";
 
 // Main string, ...variables
-type ItemProp = [string, ...string[]];
+export type ItemProp = [string, ...string[]];
 
 interface BaseItem {
     name: string;
@@ -176,12 +176,11 @@ export interface SetItem extends BaseItem {
     setItems: string[];
 }
 
-export interface Runeword extends Omit<BaseItem, "affixes"> {
+export interface Runeword extends BaseItem {
     runes: RuneName[];
     type: RunewordBaseType;
     itemTypes: string[];
     sockets: number;
-    affixes: ItemProp[];
 }
 
 export interface Rune {
@@ -195,3 +194,5 @@ export type Items = {
     setItems: Record<string, SetItem>;
     runes: Record<string, Rune>;
 };
+
+export type Runewords = Record<string, Runeword>;

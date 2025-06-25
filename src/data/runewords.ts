@@ -1,6 +1,6 @@
-import type { Runeword } from "../types/items";
+import type { Runewords } from "../types/items";
 
-const runewords: Record<string, Runeword> = {
+const runewords: Runewords = {
     "Ancient's Pledge": {
         name: "Ancient's Pledge",
         runes: ["Ral", "Ort", "Tal"],

@@ -3,9 +3,11 @@ import { requireAuth } from "../middleware/auth.js";
 import { db } from "../db/index.js";
 import { userItems } from "../db/schema.js";
 import { eq, and } from "drizzle-orm";
+import { items } from "../data/items.js";
+import { HttpError } from "../types/errors.js";
 
 export async function userItemsRoutes(fastify: FastifyInstance) {
-    // Get user's found items
+    // Get user's grail items
     fastify.get("/", { preHandler: requireAuth }, async (request) => {
         const userId = request.user!.id;
 
@@ -39,22 +41,35 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             .limit(1);
 
         if (existing.length > 0) {
-            // Update existing record
-            await db
-                .update(userItems)
-                .set({
+            if (existing[0].found === true && found === false) {
+                // Delete existing record if it's being set to false (save DB space)
+                await db.delete(userItems).where(eq(userItems.id, existing[0].id));
+            } else {
+                // Update existing record
+                await db
+                    .update(userItems)
+                    .set({
+                        found,
+                        foundAt: found ? new Date() : null,
+                    })
+                    .where(eq(userItems.id, existing[0].id));
+            }
+        } else {
+            // First, check that the item actually exists
+            const allItemKeys = Object.keys(items.uniqueItems).concat(
+                Object.keys(items.setItems).concat(Object.keys(items.runes))
+            );
+            if (allItemKeys.includes(itemKey)) {
+                // Create new record
+                await db.insert(userItems).values({
+                    userId,
+                    itemKey,
                     found,
                     foundAt: found ? new Date() : null,
-                })
-                .where(eq(userItems.id, existing[0].id));
-        } else {
-            // Create new record
-            await db.insert(userItems).values({
-                userId,
-                itemKey,
-                found,
-                foundAt: found ? new Date() : null,
-            });
+                });
+            } else {
+                throw new HttpError(400, "Item key not found");
+            }
         }
 
         return { success: true, found };
