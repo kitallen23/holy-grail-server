@@ -1,3 +1,6 @@
+/**
+ * All types in this file are identical on client / server
+ */
 type UniqueCategory =
     | "Unique Armor"
     | "Exceptional Unique Armor"
@@ -80,7 +83,7 @@ type UniqueCategory =
     | "Unique Charms"
     | "Unique Jewels";
 
-type SetCategory =
+export type SetCategory =
     | "Angelic Raiment"
     | "Arcanna's Tricks"
     | "Arctic Gear"
@@ -151,6 +154,8 @@ type RuneName =
     | "Zod";
 
 export type RunewordBaseType = "Weapons" | "Body Armor" | "Shields" | "Helmets";
+
+export type Tier = "Normal" | "Exceptional" | "Elite";
 
 // Main string, ...variables
 export type ItemProp = [string, ...string[]];
