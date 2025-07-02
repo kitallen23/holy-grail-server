@@ -34,4 +34,8 @@ export async function itemsRoutes(fastify: FastifyInstance) {
     fastify.get("/runes", async () => {
         return { items: items.runes };
     });
+
+    fastify.get("/bases", async () => {
+        return { items: items.bases };
+    });
 }
