@@ -8,15 +8,15 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
     const token = request.cookies.session;
 
     if (!token) {
-        reply.code(401);
-        return { error: "Authentication required" };
+        reply.code(401).send({ error: "Authentication required" });
+        return;
     }
 
     const { session, user } = await validateSessionToken(token);
 
     if (!session) {
-        reply.code(401);
-        return { error: "Invalid session" };
+        reply.code(401).send({ error: "Invalid session" });
+        return;
     }
 
     // Add user to request object for use in routes

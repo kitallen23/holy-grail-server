@@ -18,6 +18,22 @@ function generateUserId(): string {
 }
 
 export async function authRoutes(fastify: FastifyInstance) {
+    fastify.get("/me", async (request, reply) => {
+        const token = request.cookies.session;
+        if (!token) {
+            reply.code(401).send({ error: "Not authenticated" });
+            return;
+        }
+
+        const { user } = await validateSessionToken(token);
+        if (!user) {
+            reply.code(401).send({ error: "Invalid session" });
+            return;
+        }
+
+        return { email: user.email };
+    });
+
     // Google OAuth initiation
     fastify.get("/google", async (request, reply) => {
         const state = crypto.randomUUID();
