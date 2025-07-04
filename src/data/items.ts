@@ -3,11 +3,12 @@ import uniqueItems from "./unique-items";
 import setItems from "./set-items";
 import runewords from "./runewords";
 import runes from "./runes";
-import bases from "./base-items";
+import baseItems from "./base-items";
 
-export const items: Items = { uniqueItems, setItems, runes, bases };
+export const items: Items = { uniqueItems, setItems, runes, baseItems };
 export { runewords };
 
+// TODO: Remove me
 // const uniqueCategories = [...new Set(Object.values(uniqueItems).map((item) => item.category))];
 // const setCategories = [...new Set(Object.values(setItems).map((item) => item.category))];
 

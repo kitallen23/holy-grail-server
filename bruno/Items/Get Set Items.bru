@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/items/sets
+  url: {{baseUrl}}/items?types=setItems
   body: none
   auth: inherit
+}
+
+params:query {
+  types: setItems
 }
