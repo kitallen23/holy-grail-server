@@ -56,9 +56,9 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             }
         } else {
             // First, check that the item actually exists
-            const allItemKeys = Object.keys(items.uniqueItems).concat(
-                Object.keys(items.setItems).concat(Object.keys(items.runes))
-            );
+            const allItemKeys = Object.keys(items.uniqueItems)
+                .concat(Object.keys(items.setItems))
+                .concat(Object.keys(items.runes));
             if (allItemKeys.includes(itemKey)) {
                 // Create new record
                 await db.insert(userItems).values({

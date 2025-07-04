@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/items/runes
+  url: {{baseUrl}}/items?types=runes
   body: none
   auth: inherit
+}
+
+params:query {
+  types: runes
 }
