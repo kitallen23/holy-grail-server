@@ -25,7 +25,7 @@ await fastify.register(cors, {
 await fastify.register(helmet);
 await fastify.register(cookie);
 
-fastify.setErrorHandler((error, request, reply) => {
+fastify.setErrorHandler((error, _, reply) => {
     if (error instanceof HttpError) {
         return reply.code(error.statusCode).send({
             error: error.message,
@@ -35,6 +35,9 @@ fastify.setErrorHandler((error, request, reply) => {
 
     // Log unexpected errors
     fastify.log.error(error);
+    if (process.env.NODE_ENV !== "production") {
+        console.error(`Error: `, error);
+    }
 
     return reply.code(500).send({
         error: "Internal Server Error",

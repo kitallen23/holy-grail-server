@@ -35,14 +35,14 @@ export async function authRoutes(fastify: FastifyInstance) {
     });
 
     // Google OAuth initiation
-    fastify.get("/google", async (request, reply) => {
+    fastify.get("/google", async (_, reply) => {
         const state = crypto.randomUUID();
         reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
         reply.redirect(googleAuthURL(state));
     });
 
     // Discord OAuth initiation
-    fastify.get("/discord", async (request, reply) => {
+    fastify.get("/discord", async (_, reply) => {
         const state = crypto.randomUUID();
         reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
         reply.redirect(discordAuthURL(state));
