@@ -5535,8 +5535,8 @@ const uniqueItems: Record<string, UniqueItem> = {
         ],
         category: "Exceptional Unique Spears",
     },
-    "Hone Sudan": {
-        name: "Hone Sudan",
+    "Hone Sundan": {
+        name: "Hone Sundan",
         type: "Yari",
         image: "uniques/honesudan.gif",
         implicits: [
