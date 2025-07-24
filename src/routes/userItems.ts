@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { requireAuth } from "../middleware/auth.js";
 import { db } from "../db/index.js";
 import { userItems } from "../db/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, inArray } from "drizzle-orm";
 import { items } from "../data/items.js";
 import { HttpError } from "../types/errors.js";
 
@@ -73,5 +73,92 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         }
 
         return { success: true, found };
+    });
+
+    fastify.post("/set-bulk", { preHandler: requireAuth }, async (request) => {
+        const { items: itemsToImport } = request.body as {
+            items: { itemKey: string; foundAt?: string }[];
+        };
+        const userId = request.user!.id;
+
+        // Validate all item keys exist
+        const allItemKeys = Object.keys(items.uniqueItems)
+            .concat(Object.keys(items.setItems))
+            .concat(Object.keys(items.runes));
+
+        const validItemsToImport = itemsToImport.filter((item) =>
+            allItemKeys.includes(item.itemKey)
+        );
+
+        const itemKeys = validItemsToImport.map((item) => item.itemKey);
+        const existing = await db
+            .select()
+            .from(userItems)
+            .where(and(eq(userItems.userId, userId), inArray(userItems.itemKey, itemKeys)));
+
+        const existingMap = new Map(existing.map((record) => [record.itemKey, record]));
+
+        const itemsToInsert: {
+            userId: string;
+            itemKey: string;
+            found: boolean;
+            foundAt: Date;
+        }[] = [];
+
+        const itemsToUpdate: {
+            id: string;
+            foundAt: Date;
+        }[] = [];
+
+        for (const item of validItemsToImport) {
+            const existingRecord = existingMap.get(item.itemKey);
+
+            if (!existingRecord) {
+                // Item not in DB - add it
+                itemsToInsert.push({
+                    userId,
+                    itemKey: item.itemKey,
+                    found: true,
+                    foundAt: item.foundAt ? new Date(item.foundAt) : new Date(),
+                });
+            } else if (existingRecord.found === false) {
+                // Item exists but not found - update it
+                itemsToUpdate.push({
+                    id: existingRecord.id,
+                    foundAt: item.foundAt ? new Date(item.foundAt) : new Date(),
+                });
+            }
+            // Skip if existingRecord.found === true
+        }
+
+        // Perform batch operations
+        if (itemsToInsert.length > 0) {
+            await db.insert(userItems).values(itemsToInsert);
+        }
+
+        if (itemsToUpdate.length > 0) {
+            await db.transaction(async (tx) => {
+                const promises = itemsToUpdate.map((updateItem) =>
+                    tx
+                        .update(userItems)
+                        .set({
+                            found: true,
+                            foundAt: updateItem.foundAt,
+                        })
+                        .where(eq(userItems.id, updateItem.id))
+                );
+                await Promise.all(promises);
+            });
+        }
+
+        const totalProcessed = itemsToInsert.length + itemsToUpdate.length;
+        const skipped = validItemsToImport.length - totalProcessed;
+
+        return {
+            success: true,
+            inserted: itemsToInsert.length,
+            updated: itemsToUpdate.length,
+            skipped,
+        };
     });
 }
