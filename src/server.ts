@@ -20,8 +20,8 @@ const fastify = Fastify({
 await fastify.register(cors, {
     origin: process.env.CLIENT_URL || "http://localhost:5173",
     credentials: true,
+    methods: ["GET", "HEAD", "POST", "DELETE"],
 });
-
 await fastify.register(helmet);
 await fastify.register(cookie);
 

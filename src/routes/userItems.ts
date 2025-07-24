@@ -161,4 +161,12 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             skipped,
         };
     });
+
+    fastify.delete("/clear", { preHandler: requireAuth }, async (request) => {
+        const userId = request.user!.id;
+
+        await db.delete(userItems).where(eq(userItems.userId, userId));
+
+        return { success: true };
+    });
 }
