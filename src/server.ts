@@ -64,6 +64,7 @@ const start = async () => {
         await fastify.listen({ port, host: "0.0.0.0" });
         console.info(`Server running on port ${port}`);
 
+        cleanupExpiredSessions();
         setInterval(
             async () => {
                 await cleanupExpiredSessions();
