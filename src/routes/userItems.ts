@@ -77,7 +77,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
 
     fastify.post("/set-bulk", { preHandler: requireAuth }, async (request) => {
         const { items: itemsToImport } = request.body as {
-            items: { itemKey: string; foundAt?: string }[];
+            items: { itemKey: string; foundAt?: string; found: boolean }[];
         };
         const userId = request.user!.id;
 
@@ -86,8 +86,8 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             .concat(Object.keys(items.setItems))
             .concat(Object.keys(items.runes));
 
-        const validItemsToImport = itemsToImport.filter((item) =>
-            allItemKeys.includes(item.itemKey)
+        const validItemsToImport = itemsToImport.filter(
+            (item) => allItemKeys.includes(item.itemKey) && !!item.found
         );
 
         const itemKeys = validItemsToImport.map((item) => item.itemKey);

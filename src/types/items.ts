@@ -1,7 +1,7 @@
 /**
  * All types in this file are identical on client / server
  */
-type BaseCategory =
+export type BaseCategory =
     | "Axes"
     | "Bows"
     | "Crossbows"
@@ -33,7 +33,7 @@ type BaseCategory =
     | "Necromancer Shrunken Heads"
     | "Paladin Shields";
 
-type UniqueCategory =
+export type UniqueCategory =
     | "Unique Armor"
     | "Exceptional Unique Armor"
     | "Elite Unique Armor"
