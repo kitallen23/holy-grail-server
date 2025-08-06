@@ -71,12 +71,36 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     // Google OAuth callback
     fastify.get("/google/callback", async (request, reply) => {
-        const { code, state } = request.query as { code: string; state: string };
+        const { code, state, error } = request.query as { 
+            code?: string; 
+            state: string; 
+            error?: string; 
+        };
         const storedState = request.cookies.oauth_state;
+
+        // Handle OAuth errors (user cancelled, access denied, etc.)
+        if (error) {
+            // Clear the oauth_state cookie
+            reply.setCookie("oauth_state", "", { maxAge: 0 });
+            
+            // Redirect back to client with error info
+            const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+            const redirectUrl = new URL(clientUrl);
+            redirectUrl.searchParams.set('auth_error', error);
+            redirectUrl.searchParams.set('auth_cancelled', 'true');
+            
+            reply.redirect(redirectUrl.toString());
+            return;
+        }
 
         if (!state || !storedState || state !== storedState) {
             reply.code(400);
             return { error: "Invalid state" };
+        }
+
+        if (!code) {
+            reply.code(400);
+            return { error: "Missing authorization code" };
         }
 
         // Exchange code for access token
@@ -141,12 +165,36 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     // Discord OAuth callback
     fastify.get("/discord/callback", async (request, reply) => {
-        const { code, state } = request.query as { code: string; state: string };
+        const { code, state, error } = request.query as { 
+            code?: string; 
+            state: string; 
+            error?: string; 
+        };
         const storedState = request.cookies.oauth_state;
+
+        // Handle OAuth errors (user cancelled, access denied, etc.)
+        if (error) {
+            // Clear the oauth_state cookie
+            reply.setCookie("oauth_state", "", { maxAge: 0 });
+            
+            // Redirect back to client with error info
+            const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+            const redirectUrl = new URL(clientUrl);
+            redirectUrl.searchParams.set('auth_error', error);
+            redirectUrl.searchParams.set('auth_cancelled', 'true');
+            
+            reply.redirect(redirectUrl.toString());
+            return;
+        }
 
         if (!state || !storedState || state !== storedState) {
             reply.code(400);
             return { error: "Invalid state" };
+        }
+
+        if (!code) {
+            reply.code(400);
+            return { error: "Missing authorization code" };
         }
 
         // Exchange code for access token
