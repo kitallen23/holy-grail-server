@@ -1,0 +1,15 @@
+meta {
+  name: Clear User Items
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/user-items/clear
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}

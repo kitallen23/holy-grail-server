@@ -1,0 +1,65 @@
+meta {
+  name: Import User Items
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/user-items/set-bulk
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "items": [
+      {
+        "itemKey": "Nagelring",
+        "foundAt": "2025-01-01T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Manald Heal",
+        "found": true
+      },
+      {
+        "itemKey": "The Stone of Jordan",
+        "foundAt": "2025-07-29T14:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Dwarf Star",
+        "found": true
+      },
+      {
+        "itemKey": "Raven Frost",
+        "found": true
+      },
+      {
+        "itemKey": "Bul-Kathos' Wedding Band",
+        "foundAt": "2025-07-29T13:59:59.999Z",
+        "found": true
+      },
+      {
+        "itemKey": "Carrion Wind",
+        "found": false
+      },
+      {
+        "itemKey": "Nature's Peace",
+        "found": true
+      },
+      {
+        "itemKey": "Wisp Projector",
+        "found": true
+      },
+      {
+        "itemKey": "Test",
+        "found": true
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+}

@@ -1,4 +1,39 @@
-type UniqueCategory =
+/**
+ * All types in this file are identical on client / server
+ */
+export type BaseCategory =
+    | "Axes"
+    | "Bows"
+    | "Crossbows"
+    | "Daggers"
+    | "Javelins"
+    | "Hammers"
+    | "Maces"
+    | "Polearms"
+    | "Scepters"
+    | "Spears"
+    | "Staves"
+    | "Swords"
+    | "Throwing Weapons"
+    | "Wands"
+    | "Amazon Bows"
+    | "Amazon Javelins"
+    | "Amazon Spears"
+    | "Assassin Katars"
+    | "Sorceress Orbs"
+    | "Armor"
+    | "Belts"
+    | "Boots"
+    | "Gloves"
+    | "Helmets"
+    | "Circlets"
+    | "Shields"
+    | "Barbarian Helmets"
+    | "Druid Pelts"
+    | "Necromancer Shrunken Heads"
+    | "Paladin Shields";
+
+export type UniqueCategory =
     | "Unique Armor"
     | "Exceptional Unique Armor"
     | "Elite Unique Armor"
@@ -23,14 +58,16 @@ type UniqueCategory =
     | "Unique Gloves"
     | "Exceptional Unique Gloves"
     | "Elite Unique Gloves"
-    | "Unique Helms"
-    | "Exceptional Unique Helms"
-    | "Elite Unique Helms"
+    | "Unique Helmets"
+    | "Exceptional Unique Helmets"
+    | "Elite Unique Helmets"
     | "Elite Unique Circlets"
-    | "Unique Javelins"
     | "Elite Unique Javelins"
     | "Unique Amulets"
     | "Unique Rings"
+    | "Unique Hammers"
+    | "Exceptional Unique Hammers"
+    | "Elite Unique Hammers"
     | "Unique Maces"
     | "Exceptional Unique Maces"
     | "Elite Unique Maces"
@@ -52,23 +89,33 @@ type UniqueCategory =
     | "Unique Swords"
     | "Exceptional Unique Swords"
     | "Elite Unique Swords"
-    | "Unique Throwing Weapons"
     | "Exceptional Unique Throwing Weapons"
     | "Elite Unique Throwing Weapons"
     | "Unique Wands"
     | "Exceptional Unique Wands"
     | "Elite Unique Wands"
-    | "Unique Amazon Weapons"
-    | "Unique Assassin Katars"
-    | "Unique Barbarian Helms"
-    | "Unique Druid Pelts"
-    | "Unique Necromancer Shrunken Heads"
-    | "Unique Paladin Shields"
-    | "Unique Sorceress Orbs"
+    | "Exceptional Unique Amazon Spears"
+    | "Elite Unique Amazon Spears"
+    | "Exceptional Unique Amazon Bows"
+    | "Elite Unique Amazon Bows"
+    | "Exceptional Unique Amazon Javelins"
+    | "Elite Unique Amazon Javelins"
+    | "Exceptional Unique Assassin Katars"
+    | "Elite Unique Assassin Katars"
+    | "Exceptional Unique Barbarian Helmets"
+    | "Elite Unique Barbarian Helmets"
+    | "Exceptional Unique Druid Pelts"
+    | "Elite Unique Druid Pelts"
+    | "Exceptional Unique Necromancer Shrunken Heads"
+    | "Elite Unique Necromancer Shrunken Heads"
+    | "Exceptional Unique Paladin Shields"
+    | "Elite Unique Paladin Shields"
+    | "Exceptional Unique Sorceress Orbs"
+    | "Elite Unique Sorceress Orbs"
     | "Unique Charms"
     | "Unique Jewels";
 
-type SetCategory =
+export type SetCategory =
     | "Angelic Raiment"
     | "Arcanna's Tricks"
     | "Arctic Gear"
@@ -77,7 +124,7 @@ type SetCategory =
     | "Civerb's Vestments"
     | "Cleglaw's Brace"
     | "Death's Disguise"
-    | "Hsaru's Defense"
+    | "Hsarus' Defense"
     | "Infernal Tools"
     | "Iratha's Finery"
     | "Isenhart's Armory"
@@ -85,49 +132,111 @@ type SetCategory =
     | "Sigon's Complete Steel"
     | "Tancred's Battlegear"
     | "Vidala's Rig"
-    | "Aldur's Watchtower"
-    | "Bul-Kathos' Children"
     | "Cow King's Leathers"
-    | "The Disciple"
-    | "Griswold's Legacy"
     | "Heaven's Brethren"
     | "Hwanin's Majesty"
-    | "Immortal King"
-    | "M'avina's Battle Hymn"
     | "Naj's Ancient Vestige"
-    | "Natalya's Odium"
     | "Orphan's Call"
     | "Sander's Folly"
     | "Sazabi's Grand Tribute"
+    | "The Disciple"
+    | "Aldur's Watchtower"
+    | "Bul-Kathos' Children"
+    | "Griswold's Legacy"
+    | "Immortal King"
+    | "M'avina's Battle Hymn"
+    | "Natalya's Odium"
     | "Tal Rasha's Wrappings"
     | "Trang-Oul's Avatar";
 
-interface BaseItem {
+type RuneItemType = "Weapons" | "Armor" | "Helms" | "Shields";
+type RuneName =
+    | "El"
+    | "Eld"
+    | "Tir"
+    | "Nef"
+    | "Eth"
+    | "Ith"
+    | "Tal"
+    | "Ral"
+    | "Ort"
+    | "Thul"
+    | "Amn"
+    | "Sol"
+    | "Shael"
+    | "Dol"
+    | "Hel"
+    | "Io"
+    | "Lum"
+    | "Ko"
+    | "Fal"
+    | "Lem"
+    | "Pul"
+    | "Um"
+    | "Mal"
+    | "Ist"
+    | "Gul"
+    | "Vex"
+    | "Ohm"
+    | "Lo"
+    | "Sur"
+    | "Ber"
+    | "Jah"
+    | "Cham"
+    | "Zod";
+
+export type RunewordBaseType = "Weapons" | "Body Armor" | "Shields" | "Helmets";
+
+export type Tier = "Normal" | "Exceptional" | "Elite";
+
+// Main string, ...variables
+export type ItemProp = [string, ...string[]];
+
+interface ItemBase {
     name: string;
-    props: string[];
+    implicits?: ItemProp[];
+    affixes?: ItemProp[];
 }
 
-interface UniqueItem extends BaseItem {
+export interface UniqueItem extends ItemBase {
     type: string;
     image: string;
     category: UniqueCategory;
 }
 
-interface SetItem extends BaseItem {
+export interface SetItem extends ItemBase {
     type: string;
     image: string;
     category: SetCategory;
+    itemBonuses: Record<number | string, ItemProp>;
+    setBonuses: ItemProp[];
+    setItems: string[];
 }
 
-interface Runeword extends BaseItem {
-    runes: string[];
-    types: string[];
-    detailTypes: string[];
+export interface Runeword extends ItemBase {
+    runes: RuneName[];
+    type: RunewordBaseType;
+    itemTypes: string[];
     sockets: number;
 }
 
-type Items = {
+export interface Rune {
+    name: RuneName;
+    requiredLevel: number;
+    implicits: Record<RuneItemType, string>;
+}
+
+export interface BaseItem extends ItemBase {
+    tier: Tier;
+    tierItems: string[];
+    category: BaseCategory;
+}
+
+export type Items = {
     uniqueItems: Record<string, UniqueItem>;
     setItems: Record<string, SetItem>;
-    runewords: Record<string, Runeword>;
+    runes: Record<string, Rune>;
+    baseItems: Record<string, BaseItem>;
 };
+
+export type Runewords = Record<string, Runeword>;

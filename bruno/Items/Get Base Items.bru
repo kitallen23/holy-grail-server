@@ -1,0 +1,15 @@
+meta {
+  name: Get Base Items
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/items?types=baseItems
+  body: none
+  auth: inherit
+}
+
+params:query {
+  types: baseItems
+}

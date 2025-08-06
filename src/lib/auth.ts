@@ -2,7 +2,7 @@ import { encodeBase32LowerCaseNoPadding, encodeHexLowerCase } from "@oslojs/enco
 import { sha256 } from "@oslojs/crypto/sha2";
 import { db } from "../db/index.js";
 import { sessions, users } from "../db/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, lt } from "drizzle-orm";
 
 export function generateSessionToken(): string {
     const bytes = new Uint8Array(20);
@@ -51,4 +51,8 @@ export async function validateSessionToken(token: string) {
 
 export async function invalidateSession(sessionId: string) {
     await db.delete(sessions).where(eq(sessions.id, sessionId));
+}
+
+export async function cleanupExpiredSessions() {
+    await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
 }

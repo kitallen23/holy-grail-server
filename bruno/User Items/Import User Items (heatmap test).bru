@@ -1,0 +1,101 @@
+meta {
+  name: Import User Items (heatmap test)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/user-items/set-bulk
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "items": [
+      {
+        "itemKey": "Rainbow Facet (Lightning Die)",
+        "foundAt": "2025-01-01T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Rainbow Facet (Lightning Level)",
+        "foundAt": "2025-01-02T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Rainbow Facet (Fire Level)",
+        "foundAt": "2025-01-02T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Rainbow Facet (Fire Die)",
+        "foundAt": "2025-01-03T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Rainbow Facet (Cold Level)",
+        "foundAt": "2025-01-03T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Rainbow Facet (Cold Die)",
+        "foundAt": "2025-01-03T00:00:00.000Z",
+        "found": true
+      },
+      
+      
+      {
+        "itemKey": "Rainbow Facet (Poison Level)",
+        "foundAt": "2025-01-04T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Rainbow Facet (Poison Die)",
+        "foundAt": "2025-01-04T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Bladebone",
+        "foundAt": "2025-01-04T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Boneslayer Blade",
+        "foundAt": "2025-01-04T00:00:00.000Z",
+        "found": true
+      },
+      
+      
+      {
+        "itemKey": "Brainhew",
+        "foundAt": "2025-01-05T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Butcher's Pupil",
+        "foundAt": "2025-01-05T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Coldkill",
+        "foundAt": "2025-01-05T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Cranebeak",
+        "foundAt": "2025-01-05T00:00:00.000Z",
+        "found": true
+      },
+      {
+        "itemKey": "Death Cleaver",
+        "foundAt": "2025-01-05T00:00:00.000Z",
+        "found": true
+      }
+    ]
+  }
+}
+
+settings {
+  encodeUrl: true
+}

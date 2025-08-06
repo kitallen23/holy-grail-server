@@ -1,0 +1,15 @@
+meta {
+  name: Get Runes
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/items?types=runes
+  body: none
+  auth: inherit
+}
+
+params:query {
+  types: runes
+}
