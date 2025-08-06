@@ -1,9 +1,9 @@
-import type { Items } from "../types/items";
-import uniqueItems from "./unique-items";
-import setItems from "./set-items";
-import runewords from "./runewords";
-import runes from "./runes";
-import baseItems from "./base-items";
+import type { Items } from "../types/items.js";
+import uniqueItems from "./unique-items.js";
+import setItems from "./set-items.js";
+import runewords from "./runewords.js";
+import runes from "./runes.js";
+import baseItems from "./base-items.js";
 
 export const items: Items = { uniqueItems, setItems, runes, baseItems };
 export { runewords };

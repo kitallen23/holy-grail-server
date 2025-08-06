@@ -54,3 +54,13 @@ bruno/environments/production.bru
 # Temporary files
 *.tmp
 *.temp
+
+# AWS SAM
+.aws-sam/build/
+.aws-sam/cache/
+.aws-sam/deps/
+.aws-sam/.debug/
+
+# Keep these SAM files (they're safe to commit):
+# samconfig.toml - deployment configuration
+# .aws-sam/build.toml - build metadata

@@ -59,22 +59,26 @@ await fastify.register(itemsRoutes, { prefix: "/items" });
 await fastify.register(runewordsRoutes, { prefix: "/runewords" });
 
 const start = async () => {
-    try {
-        const port = Number(process.env.PORT) || 3000;
-        await fastify.listen({ port, host: "0.0.0.0" });
-        console.info(`Server running on port ${port}`);
+    if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
+        try {
+            const port = Number(process.env.PORT) || 3000;
+            await fastify.listen({ port, host: "0.0.0.0" });
+            console.info(`Server running on port ${port}`);
 
-        cleanupExpiredSessions();
-        setInterval(
-            async () => {
-                await cleanupExpiredSessions();
-            },
-            24 * 60 * 60 * 1000
-        ); // Daily cleanup
-    } catch (err) {
-        fastify.log.error(err);
-        process.exit(1);
+            cleanupExpiredSessions();
+            setInterval(
+                async () => {
+                    await cleanupExpiredSessions();
+                },
+                24 * 60 * 60 * 1000
+            ); // Daily cleanup
+        } catch (err) {
+            fastify.log.error(err);
+            process.exit(1);
+        }
     }
 };
+
+export { fastify as app };
 
 start();

@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
-import { validateSessionToken } from "../lib/auth";
-import { db } from "../db";
-import { sessions } from "../db/schema";
+import { validateSessionToken } from "../lib/auth.js";
+import { db } from "../db/index.js";
+import { sessions } from "../db/schema.js";
 import { eq } from "drizzle-orm";
 
 export async function requireAuth(request: FastifyRequest, reply: FastifyReply) {

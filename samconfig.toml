@@ -1,0 +1,11 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "holy-grail-server"
+resolve_s3 = true
+s3_prefix = "holy-grail-server"
+region = "ap-southeast-4"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Environment=\"prod\" DatabaseName=\"d2_holy_grail\" DBUsername=\"postgres\""
+image_repositories = []

@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify";
 
-import { runewords } from "../data/items";
+import { runewords } from "../data/items.js";
 
 export async function runewordsRoutes(fastify: FastifyInstance) {
     // Get all runewords (public route)

@@ -1,7 +1,7 @@
 import { FastifyInstance } from "fastify";
 
-import { items } from "../data/items";
-import { Items } from "../types/items";
+import { items } from "../data/items.js";
+import { Items } from "../types/items.js";
 
 export async function itemsRoutes(fastify: FastifyInstance) {
     // Get items (public route)
