@@ -117,11 +117,14 @@ pnpm db:migrate # Apply migrations to database
 ### Public Routes
 
 - `GET /health` - Health check
-- `GET /items` - Get all items (unique items, set items, runewords)
+- `GET /items?types=uniqueItems,setItems,runes,baseItems` - Get items by type (requires types query parameter)
 - `GET /items/:itemKey` - Get specific item by key
+- `GET /runewords` - Get all runewords
+- `GET /runewords/:runewordKey` - Get specific runeword by key
 
 ### Authentication Routes
 
+- `GET /auth/me` - Get current user information
 - `GET /auth/google` - Initiate Google OAuth login
 - `GET /auth/discord` - Initiate Discord OAuth login
 - `GET /auth/google/callback` - Google OAuth callback (handled automatically)
@@ -130,8 +133,10 @@ pnpm db:migrate # Apply migrations to database
 
 ### Protected Routes (require authentication)
 
-- `GET /user-items` - Get user's found items
-- `POST /user-items/set` - Mark item as found/unfound
+- `GET /user-items` - Get all user's found items
+- `POST /user-items/set` - Mark single item as found/unfound
+- `POST /user-items/set-bulk` - Bulk import multiple items
+- `DELETE /user-items/clear` - Clear all user items
 
 ## OAuth Setup
 
