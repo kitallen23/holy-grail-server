@@ -3,7 +3,6 @@ import { requireAuth } from "../middleware/auth.js";
 import { db } from "../db/index.js";
 import { userItems } from "../db/schema.js";
 import { eq, and, inArray } from "drizzle-orm";
-import { items } from "../data/items.js";
 import { HttpError } from "../types/errors.js";
 
 export async function userItemsRoutes(fastify: FastifyInstance) {
@@ -44,6 +43,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             }
         } else {
             // First, check that the item actually exists
+            const { items } = await import("../data/items.js");
             const allItemKeys = Object.keys(items.uniqueItems)
                 .concat(Object.keys(items.setItems))
                 .concat(Object.keys(items.runes));
@@ -70,6 +70,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         const userId = request.user!.id;
 
         // Validate all item keys exist
+        const { items } = await import("../data/items.js");
         const allItemKeys = Object.keys(items.uniqueItems)
             .concat(Object.keys(items.setItems))
             .concat(Object.keys(items.runes));

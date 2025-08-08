@@ -1,6 +1,5 @@
 import { FastifyInstance } from "fastify";
 
-import { items } from "../data/items.js";
 import { Items } from "../types/items.js";
 
 export async function itemsRoutes(fastify: FastifyInstance) {
@@ -13,6 +12,7 @@ export async function itemsRoutes(fastify: FastifyInstance) {
             return;
         }
 
+        const { items } = await import("../data/items.js");
         const typeArray = Array.isArray(types) ? types : [types];
         const result: Partial<Items> = {};
 
@@ -38,6 +38,7 @@ export async function itemsRoutes(fastify: FastifyInstance) {
 
     // Get single item by key (public route)
     fastify.get("/:itemKey", async (request, reply) => {
+        const { items } = await import("../data/items.js");
         const { itemKey } = request.params as { itemKey: string };
 
         // Search across all item types

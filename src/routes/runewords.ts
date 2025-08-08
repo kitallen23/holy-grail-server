@@ -1,15 +1,17 @@
 import { FastifyInstance } from "fastify";
 
-import { runewords } from "../data/items.js";
+// import { runewords } from "../data/items.js";
 
 export async function runewordsRoutes(fastify: FastifyInstance) {
     // Get all runewords (public route)
     fastify.get("/", async () => {
+        const { runewords } = await import("../data/items.js");
         return { runewords };
     });
 
     // Get single runeword by key (public route)
     fastify.get("/:runewordKey", async (request, reply) => {
+        const { runewords } = await import("../data/items.js");
         const { runewordKey } = request.params as { runewordKey: string };
 
         // Search across all item types
