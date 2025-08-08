@@ -130,6 +130,33 @@ All secrets are stored in AWS Parameter Store:
 - **Not Cached**: `/auth*` and `/user-items*` endpoints (dynamic user data)
 - **Custom Policy**: Forwards all query parameters while maintaining cache efficiency
 
+## CloudFront Origin Request Policies
+
+Critical configuration for OAuth and session management:
+
+### Policy Requirements
+
+- **`/auth*` endpoints**: Must use `AllViewerExceptHostHeader` policy
+  - Forwards all query parameters (required for OAuth state validation)
+  - Forwards all cookies (required for session management)
+  - Without this, OAuth callbacks will fail with state validation errors
+
+- **`/user-items*` endpoints**: Must use `AllViewerExceptHostHeader` policy  
+  - Forwards session cookies for authentication
+  - Must match `/auth*` policy to prevent cookie forwarding mismatches
+
+- **`/items*` and `/runewords*`**: Can use `CORS-S3Origin` policy
+  - Public endpoints that don't require cookies or complex query parameters
+  - Optimized for caching static game data
+
+### Session Cookie Configuration
+
+Session cookies are set with `domain: ".chuggs.net"` to enable sharing between:
+- Frontend: `holy-grail.chuggs.net` 
+- API: `holy-grail-api.chuggs.net`
+
+This allows the frontend to access session cookies set by the API after OAuth redirects.
+
 ## Database
 
 - **Provider**: Neon PostgreSQL (serverless)

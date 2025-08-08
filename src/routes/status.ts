@@ -1,7 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import postgres from "postgres";
+import { readFileSync } from "fs";
+import { join } from "path";
 
-export async function healthRoutes(fastify: FastifyInstance) {
+export async function statusRoutes(fastify: FastifyInstance) {
     // Public health check endpoint
     fastify.get(
         "/health",
@@ -14,9 +16,14 @@ export async function healthRoutes(fastify: FastifyInstance) {
             },
         },
         async (_, reply) => {
+            const packageJson = JSON.parse(
+                readFileSync(join(process.cwd(), "package.json"), "utf-8")
+            );
+            
             const checks = {
                 status: "healthy",
                 timestamp: new Date().toISOString(),
+                version: packageJson.version,
                 database: "unknown",
             };
 

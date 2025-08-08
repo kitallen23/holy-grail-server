@@ -12,15 +12,28 @@ export async function requireAuth(request: FastifyRequest, reply: FastifyReply) 
         return;
     }
 
-    const { session, user } = await validateSessionToken(token);
+    const validationPromise = validateSessionToken(token);
+    const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Validation timeout")), 5000)
+    );
 
-    if (!session) {
-        reply.code(401).send({ error: "Invalid session" });
+    try {
+        const result = (await Promise.race([validationPromise, timeoutPromise])) as {
+            session: any; //eslint-disable-line @typescript-eslint/no-explicit-any
+            user: any; //eslint-disable-line @typescript-eslint/no-explicit-any
+        };
+        const { session, user } = result;
+
+        if (!session) {
+            reply.code(401).send({ error: "Invalid session" });
+            return;
+        }
+
+        request.user = user;
+    } catch {
+        reply.code(401).send({ error: "Authentication required" });
         return;
     }
-
-    // Add user to request object for use in routes
-    request.user = user;
 }
 
 export async function optionalAuth(request: FastifyRequest) {

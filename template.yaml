@@ -121,7 +121,7 @@ Resources:
                       TargetOriginId: ApiGatewayOrigin
                       ViewerProtocolPolicy: redirect-to-https
                       CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
-                      OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
+                      OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # AllViewerExceptHostHeader
                       ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
                       AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
                       CachedMethods: [GET, HEAD, OPTIONS]
@@ -130,7 +130,7 @@ Resources:
                       TargetOriginId: ApiGatewayOrigin
                       ViewerProtocolPolicy: redirect-to-https
                       CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
-                      OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
+                      OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac # AllViewerExceptHostHeader
                       ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
                       AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
                       CachedMethods: [GET, HEAD, OPTIONS]

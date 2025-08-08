@@ -8,7 +8,7 @@ import { authRoutes } from "./routes/auth.js";
 import { userItemsRoutes } from "./routes/userItems.js";
 import { itemsRoutes } from "./routes/items.js";
 import { runewordsRoutes } from "./routes/runewords.js";
-import { healthRoutes } from "./routes/status.js";
+import { statusRoutes } from "./routes/status.js";
 import { cleanupExpiredSessions } from "./lib/auth.js";
 import { optionalAuth } from "./middleware/auth.js";
 import { HttpError } from "./types/errors.js";
@@ -53,7 +53,7 @@ await fastify.register(authRoutes, { prefix: "/auth" });
 await fastify.register(userItemsRoutes, { prefix: "/user-items" });
 await fastify.register(itemsRoutes, { prefix: "/items" });
 await fastify.register(runewordsRoutes, { prefix: "/runewords" });
-await fastify.register(healthRoutes);
+await fastify.register(statusRoutes);
 
 const start = async () => {
     if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {

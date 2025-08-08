@@ -163,6 +163,36 @@ pnpm db:migrate # Apply migrations to database
     - `https://yourdomain.com/auth/discord/callback` (production)
 5. Copy Client ID and Client Secret
 
+## Session Management
+
+### Cookie Domain Configuration
+
+For production deployments with separate frontend/API domains, session cookies are configured with a shared domain:
+
+```typescript
+// In OAuth callback routes
+reply.setCookie("session", sessionId, {
+    domain: ".yourdomain.com", // Allows sharing between subdomains
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+});
+```
+
+This enables:
+- Frontend (`app.yourdomain.com`) to access cookies set by API (`api.yourdomain.com`)
+- Seamless authentication flow after OAuth redirects
+- Proper session persistence across subdomain boundaries
+
+### CloudFront Requirements
+
+When using CloudFront, ensure OAuth endpoints use policies that forward:
+- All query parameters (for OAuth state validation)
+- All cookies (for session management)
+
+See HOSTING.md for detailed CloudFront configuration requirements.
+
 ## API Testing
 
 The project includes Bruno API tests in the `bruno/` directory. Install [Bruno](https://usebruno.com) and open the collection to test all endpoints.

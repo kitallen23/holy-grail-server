@@ -37,14 +37,26 @@ export async function authRoutes(fastify: FastifyInstance) {
     // Google OAuth initiation
     fastify.get("/google", async (_, reply) => {
         const state = crypto.randomUUID();
-        reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
+        reply.setCookie("oauth_state", state, {
+            httpOnly: true,
+            maxAge: 600,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            domain: process.env.NODE_ENV === "production" ? ".chuggs.net" : undefined,
+        });
         reply.redirect(googleAuthURL(state));
     });
 
     // Discord OAuth initiation
     fastify.get("/discord", async (_, reply) => {
         const state = crypto.randomUUID();
-        reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
+        reply.setCookie("oauth_state", state, {
+            httpOnly: true,
+            maxAge: 600,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+            domain: process.env.NODE_ENV === "production" ? ".chuggs.net" : undefined,
+        });
         reply.redirect(discordAuthURL(state));
     });
 
@@ -71,10 +83,10 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     // Google OAuth callback
     fastify.get("/google/callback", async (request, reply) => {
-        const { code, state, error } = request.query as { 
-            code?: string; 
-            state: string; 
-            error?: string; 
+        const { code, state, error } = request.query as {
+            code?: string;
+            state: string;
+            error?: string;
         };
         const storedState = request.cookies.oauth_state;
 
@@ -82,13 +94,13 @@ export async function authRoutes(fastify: FastifyInstance) {
         if (error) {
             // Clear the oauth_state cookie
             reply.setCookie("oauth_state", "", { maxAge: 0 });
-            
+
             // Redirect back to client with error info
             const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
             const redirectUrl = new URL(clientUrl);
-            redirectUrl.searchParams.set('auth_error', error);
-            redirectUrl.searchParams.set('auth_cancelled', 'true');
-            
+            redirectUrl.searchParams.set("auth_error", error);
+            redirectUrl.searchParams.set("auth_cancelled", "true");
+
             reply.redirect(redirectUrl.toString());
             return;
         }
@@ -158,17 +170,19 @@ export async function authRoutes(fastify: FastifyInstance) {
             sameSite: "lax",
             maxAge: 60 * 60 * 24 * 30,
             path: "/",
+            domain: process.env.NODE_ENV === "production" ? ".chuggs.net" : undefined,
         });
 
-        reply.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+        const redirectUrl = process.env.CLIENT_URL || "http://localhost:5173";
+        reply.redirect(redirectUrl);
     });
 
     // Discord OAuth callback
     fastify.get("/discord/callback", async (request, reply) => {
-        const { code, state, error } = request.query as { 
-            code?: string; 
-            state: string; 
-            error?: string; 
+        const { code, state, error } = request.query as {
+            code?: string;
+            state: string;
+            error?: string;
         };
         const storedState = request.cookies.oauth_state;
 
@@ -176,13 +190,13 @@ export async function authRoutes(fastify: FastifyInstance) {
         if (error) {
             // Clear the oauth_state cookie
             reply.setCookie("oauth_state", "", { maxAge: 0 });
-            
+
             // Redirect back to client with error info
             const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
             const redirectUrl = new URL(clientUrl);
-            redirectUrl.searchParams.set('auth_error', error);
-            redirectUrl.searchParams.set('auth_cancelled', 'true');
-            
+            redirectUrl.searchParams.set("auth_error", error);
+            redirectUrl.searchParams.set("auth_cancelled", "true");
+
             reply.redirect(redirectUrl.toString());
             return;
         }
@@ -252,8 +266,10 @@ export async function authRoutes(fastify: FastifyInstance) {
             sameSite: "lax",
             maxAge: 60 * 60 * 24 * 30,
             path: "/",
+            domain: process.env.NODE_ENV === "production" ? ".chuggs.net" : undefined,
         });
 
-        reply.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+        const redirectUrl = process.env.CLIENT_URL || "http://localhost:5173";
+        reply.redirect(redirectUrl);
     });
 }
