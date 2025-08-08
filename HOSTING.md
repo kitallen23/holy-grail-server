@@ -1,462 +1,155 @@
-# AWS Lambda + RDS Serverless Hosting Guide
+# AWS Serverless Deployment
 
-This guide walks through deploying the Diablo 2 Holy Grail Server to AWS using Lambda + RDS Serverless v2 for cost-effective, scalable hosting.
+The Diablo 2 Holy Grail Server is deployed on AWS using a serverless architecture with Lambda + Neon PostgreSQL + CloudFront CDN.
 
-## Why This Stack?
+## Architecture
 
-- **Cost-effective**: Pay only when used, scales to near-zero when idle
-- **DDoS protection**: Built-in AWS protections prevent malicious cost spikes
-- **Minimal refactoring**: Fastify works great with Lambda
-- **Auto-scaling**: Handles traffic spikes automatically
+- **API**: `https://holy-grail-api.chuggs.net` (CloudFront CDN)
+- **Backend**: AWS Lambda with Fastify
+- **Database**: Neon PostgreSQL (serverless, auto-scales to zero)
+- **Cost**: ~$0-5/month (Neon free tier + AWS Lambda costs)
 
-## Prerequisites
+## Initial Setup
 
-- AWS Account
-- macOS/Linux/Windows with terminal access
-- Node.js 18+ and pnpm installed
-- Basic familiarity with command line
+### Prerequisites
 
-## Step 1: Install Required Tools
+- AWS CLI configured with credentials
+- AWS SAM CLI installed (`brew install aws-sam-cli`)
+- Node.js 22+ and pnpm
+- Neon account (free at https://neon.tech)
 
-### Install AWS SAM CLI
+### Neon Database Setup
 
-**macOS (via Homebrew):**
-```bash
-brew install aws-sam-cli
-```
+1. Create a Neon account at https://neon.tech
+2. Create a new project with PostgreSQL 16 or 17
+3. Choose AWS Sydney region (ap-southeast-2) for best performance
+4. Copy your connection string from the Neon dashboard
 
-**Windows:**
-Download from: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html
-
-**Linux:**
-```bash
-# Download and install
-wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-sudo ./sam-installation/install
-```
-
-### Verify Installation
+### Store Secrets
 
 ```bash
-# Check AWS CLI
-aws --version
-
-# Check SAM CLI
-sam --version
-
-# Verify AWS credentials
-aws sts get-caller-identity
+# Store OAuth credentials and database password in AWS Parameter Store
+aws ssm put-parameter --name "/holy-grail/prod/google-client-id" --value "your-value" --type "String"
+aws ssm put-parameter --name "/holy-grail/prod/google-client-secret" --value "your-value" --type "String"
+aws ssm put-parameter --name "/holy-grail/prod/discord-client-id" --value "your-value" --type "String"
+aws ssm put-parameter --name "/holy-grail/prod/discord-client-secret" --value "your-value" --type "String"
+aws ssm put-parameter --name "/holy-grail/prod/db-password" --value "your-neon-password" --type "String"
 ```
 
-## Step 2: Prepare Code for Lambda
-
-### Install Lambda Dependencies
+### First Deployment
 
 ```bash
-pnpm add @fastify/aws-lambda
-pnpm add -D @types/aws-lambda
-```
-
-### Create Lambda Handler
-
-Create `src/lambda.ts`:
-```typescript
-import { awsLambdaFastify } from '@fastify/aws-lambda'
-import { app } from './server.js'
-
-export const handler = awsLambdaFastify(app, {
-  decorateRequest: false
-})
-```
-
-### Modify server.ts
-
-Export the Fastify app instance:
-```typescript
-// At the end of server.ts, export the app
-export { fastify as app }
-
-// Modify the start function to only run when not in Lambda
-const start = async () => {
-  // Only start server if not in Lambda environment
-  if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
-    try {
-      const port = Number(process.env.PORT) || 3000;
-      await fastify.listen({ port, host: "0.0.0.0" });
-      console.info(`Server running on port ${port}`);
-
-      cleanupExpiredSessions();
-      setInterval(
-        async () => {
-          await cleanupExpiredSessions();
-        },
-        24 * 60 * 60 * 1000
-      );
-    } catch (err) {
-      fastify.log.error(err);
-      process.exit(1);
-    }
-  }
-};
-
-start();
-```
-
-### Update package.json Scripts
-
-Add Lambda-specific scripts:
-```json
-{
-  "scripts": {
-    "build:lambda": "tsc && cp package.json dist/",
-    "sam:build": "sam build",
-    "sam:deploy": "sam deploy --guided",
-    "sam:local": "sam local start-api"
-  }
-}
-```
-
-## Step 3: Create SAM Template
-
-Create `template.yaml` in project root:
-```yaml
-AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: Diablo 2 Holy Grail Server
-
-Globals:
-  Function:
-    Timeout: 30
-    Runtime: nodejs18.x
-    Environment:
-      Variables:
-        NODE_ENV: production
-
-Parameters:
-  Environment:
-    Type: String
-    Default: dev
-    AllowedValues: [dev, prod]
-
-Resources:
-  # Lambda Function
-  HolyGrailApi:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: dist/
-      Handler: lambda.handler
-      Events:
-        ApiEvent:
-          Type: Api
-          Properties:
-            Path: /{proxy+}
-            Method: ANY
-        RootEvent:
-          Type: Api
-          Properties:
-            Path: /
-            Method: ANY
-      Environment:
-        Variables:
-          DATABASE_URL: !Sub 
-            - "postgresql://${Username}:${Password}@${Endpoint}:5432/${DatabaseName}"
-            - Username: !Ref DBUsername
-              Password: !Ref DBPassword
-              Endpoint: !GetAtt Database.Endpoint.Address
-              DatabaseName: !Ref DatabaseName
-
-  # RDS Serverless v2 Cluster
-  Database:
-    Type: AWS::RDS::DBCluster
-    Properties:
-      Engine: aurora-postgresql
-      EngineMode: provisioned
-      EngineVersion: '15.4'
-      DatabaseName: !Ref DatabaseName
-      MasterUsername: !Ref DBUsername
-      MasterUserPassword: !Ref DBPassword
-      ServerlessV2ScalingConfiguration:
-        MinCapacity: 0.5
-        MaxCapacity: 2
-      VpcSecurityGroupIds:
-        - !Ref DatabaseSecurityGroup
-      DBSubnetGroupName: !Ref DatabaseSubnetGroup
-
-  DatabaseInstance:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      DBInstanceClass: db.serverless
-      DBClusterIdentifier: !Ref Database
-      Engine: aurora-postgresql
-
-  # VPC and Security Groups
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: 10.0.0.0/16
-      EnableDnsHostnames: true
-      EnableDnsSupport: true
-
-  DatabaseSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: Subnet group for RDS
-      SubnetIds:
-        - !Ref PrivateSubnet1
-        - !Ref PrivateSubnet2
-
-  PrivateSubnet1:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.1.0/24
-      AvailabilityZone: !Select [0, !GetAZs '']
-
-  PrivateSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.2.0/24
-      AvailabilityZone: !Select [1, !GetAZs '']
-
-  DatabaseSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for RDS
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 5432
-          ToPort: 5432
-          SourceSecurityGroupId: !Ref LambdaSecurityGroup
-
-  LambdaSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for Lambda
-      VpcId: !Ref VPC
-
-Parameters:
-  DatabaseName:
-    Type: String
-    Default: d2_holy_grail
-  DBUsername:
-    Type: String
-    Default: postgres
-  DBPassword:
-    Type: String
-    NoEcho: true
-    MinLength: 8
-
-Outputs:
-  ApiUrl:
-    Description: API Gateway endpoint URL
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
-  DatabaseEndpoint:
-    Description: RDS Cluster Endpoint
-    Value: !GetAtt Database.Endpoint.Address
-```
-
-## Step 4: Store Secrets in AWS Parameter Store
-
-Before deployment, store your secrets securely in AWS Parameter Store (never commit secrets to git):
-
-```bash
-# Store OAuth credentials (replace with your actual values)
-aws ssm put-parameter --name "/holy-grail/prod/google-client-id" --value "your-google-client-id" --type "String"
-aws ssm put-parameter --name "/holy-grail/prod/google-client-secret" --value "your-google-client-secret" --type "String"
-aws ssm put-parameter --name "/holy-grail/prod/discord-client-id" --value "your-discord-client-id" --type "String"
-aws ssm put-parameter --name "/holy-grail/prod/discord-client-secret" --value "your-discord-client-secret" --type "String"
-```
-
-**Note:** The template.yaml file references these parameters securely:
-- `CLIENT_URL` is set directly to your production frontend URL
-- All secrets use `{{resolve:ssm:...}}` syntax to pull from Parameter Store
-- This keeps your template safe to commit to git
-
-## Step 5: Deploy to AWS
-
-### Build the Application
-```bash
-pnpm build:lambda
+pnpm build
 sam build
-```
-
-### Deploy (First Time)
-```bash
 sam deploy --guided
 ```
 
-This will prompt you for:
-- **Stack name**: e.g., `holy-grail-server`
-- **AWS Region**: e.g., `us-east-1`
-- **Parameter Environment**: `prod` (to use /holy-grail/prod/ parameter paths)
-- **Parameter DatabaseName**: Press Enter for default `d2_holy_grail`
-- **Parameter DBUsername**: Press Enter for default `postgres`
-- **Parameter DBPassword**: Generate strong password with password manager (min 8 chars)
-- **Confirm changes before deploy**: `Y`
-- **Allow SAM CLI IAM role creation**: `Y` (needed for Lambda permissions)
-- **Disable rollback**: Press Enter for default `N` (keeps rollback enabled)
-- **HolyGrailApi has no authentication**: `Y` (app handles auth, not API Gateway)
-- **Save arguments to configuration file**: `Y` (saves settings to samconfig.toml)
-- **SAM configuration environment**: Press Enter for default `default`
+Follow prompts:
 
-### Subsequent Deploys
+- Stack name: `holy-grail-server`
+- Region: `ap-southeast-4` (Melbourne)
+- Environment: `prod`
+- Confirm all other defaults
+
+### Database Setup
+
+Run migrations locally using the standard Drizzle workflow (see "Database Migrations" section below).
+
+## Regular Deployment
+
 ```bash
-pnpm build:lambda
+# Build and deploy updates
+pnpm build
+sam build
+sam deploy
+
+# View logs
+sam logs -n HolyGrailApi --tail
+```
+
+## Database Migrations
+
+Database migrations are handled locally using the standard Drizzle workflow. No more complex API endpoints or VPC networking issues!
+
+### Running Migrations
+
+**Initial database setup:**
+
+```bash
+# 1. Set your DATABASE_URL locally
+export DATABASE_URL="postgresql://username:password@your-neon-endpoint/dbname?sslmode=require"
+
+# 2. Generate migration files from schema
+pnpm db:generate
+
+# 3. Apply migrations to Neon database
+pnpm db:migrate
+
+# 4. Build and deploy your API
+pnpm build
 sam build
 sam deploy
 ```
 
-## Step 6: Database Setup
-
-### Run Migrations
-After deployment, you'll need to run your database migrations:
+**Future schema changes:**
 
 ```bash
-# Get the database URL from AWS Console or SAM outputs
-export DATABASE_URL="postgresql://postgres:password@your-cluster.amazonaws.com:5432/d2_holy_grail"
-
-# Run migrations
-pnpm db:generate
-pnpm db:migrate
+# 1. Update your schema in src/db/schema.ts
+# 2. Generate new migration: pnpm db:generate
+# 3. Apply migration: pnpm db:migrate
+# 4. Deploy API: pnpm build && sam build && sam deploy
 ```
 
-## Step 7: Update OAuth Settings
+### Benefits
 
-Update your OAuth applications with the new Lambda URLs:
+- ✅ Run migrations from your local machine
+- ✅ Proper schema diffing and conflict detection
+- ✅ Interactive prompts for destructive changes
+- ✅ No need to deploy code just to run migrations
+- ✅ Standard Drizzle workflow that other developers expect
 
-### Google OAuth
-- Authorized redirect URIs: `https://your-api-id.execute-api.region.amazonaws.com/Prod/auth/google/callback`
+## Key Files
 
-### Discord OAuth  
-- Redirect URIs: `https://your-api-id.execute-api.region.amazonaws.com/Prod/auth/discord/callback`
+- `template.yaml` - Complete AWS infrastructure as code
+- `src/lambda.ts` - Lambda handler for Fastify app
+- `samconfig.toml` - Deployment configuration (safe to commit)
 
-## Step 8: Testing
+## Secrets Management
 
-### Test Locally (Optional)
-```bash
-sam local start-api
-# Test at http://localhost:3000
-```
+All secrets are stored in AWS Parameter Store:
 
-### Test Production
-```bash
-curl https://your-api-id.execute-api.region.amazonaws.com/Prod/health
-```
+- `/holy-grail/prod/google-client-id`
+- `/holy-grail/prod/google-client-secret`
+- `/holy-grail/prod/discord-client-id`
+- `/holy-grail/prod/discord-client-secret`
+- `/holy-grail/prod/db-password`
 
-## Cost Monitoring
+## CloudFront Caching
 
-### Set Up Billing Alerts
-1. Go to AWS Billing Console
-2. Create billing alert for $10/month
-3. Set up CloudWatch alarms for Lambda invocations
+- **Cached**: `/items*` and `/runewords*` endpoints (static game data)
+- **Not Cached**: `/auth*` and `/user-items*` endpoints (dynamic user data)
+- **Custom Policy**: Forwards all query parameters while maintaining cache efficiency
 
-### Expected Costs
-- **Low traffic**: $2-5/month
-- **Medium traffic**: $10-20/month  
-- **High traffic**: $30-50/month
+## Database
 
-RDS Serverless scales to ~$0.90/month when idle.
+- **Provider**: Neon PostgreSQL (serverless)
+- **Region**: AWS Sydney (ap-southeast-2) for optimal performance with Lambda in Melbourne (ap-southeast-4)
+- **Connection**: Pooled connection with SSL required
+- **Auto-scaling**: Scales to zero when idle (free tier available)
+- **Backups**: Automatic backups with point-in-time recovery
 
 ## Security Features
 
-### Built-in Protections
-- API Gateway rate limiting (10,000 requests/second default)
-- Lambda concurrency limits prevent runaway costs
-- VPC isolation for database
+- Database accessible over internet with SSL/TLS encryption
+- Connection pooling for optimal Lambda performance
 - AWS Shield Standard DDoS protection
+- API Gateway rate limiting
+- Lambda concurrency limits prevent runaway costs
+- All secrets stored in AWS Parameter Store
 
-### Additional Security (Optional)
-Add AWS WAF for advanced protection:
-```bash
-# Add to template.yaml under Resources
-WebACL:
-  Type: AWS::WAFv2::WebACL
-  Properties:
-    Scope: REGIONAL
-    DefaultAction:
-      Allow: {}
-    Rules:
-      - Name: RateLimitRule
-        Priority: 1
-        Statement:
-          RateBasedStatement:
-            Limit: 2000
-            AggregateKeyType: IP
-        Action:
-          Block: {}
-```
+## OAuth Configuration
 
-## Troubleshooting
+Update OAuth applications with CloudFront URLs:
 
-### Common Issues
-
-**Lambda timeout:**
-- Increase timeout in template.yaml
-- Check database connection pooling
-
-**Database connection errors:**
-- Verify VPC configuration
-- Check security group rules
-- Ensure Lambda has VPC permissions
-
-**OAuth redirect errors:**
-- Update OAuth app settings with correct Lambda URLs
-- Check CORS configuration
-
-### Useful Commands
-
-```bash
-# View logs
-sam logs -n HolyGrailApi --tail
-
-# Delete stack (cleanup)
-sam delete
-
-# Local testing
-sam local start-api --env-vars env.json
-```
-
-## Maintenance
-
-### Updates
-```bash
-# Update code
-pnpm build:lambda
-sam build
-sam deploy
-
-# Update dependencies
-pnpm update
-```
-
-### Monitoring
-- CloudWatch logs for Lambda function
-- RDS Performance Insights for database
-- AWS Cost Explorer for spending
-
-### Backups
-RDS Serverless automatically creates backups. Manual backup:
-```bash
-aws rds create-db-cluster-snapshot \
-  --db-cluster-identifier your-cluster \
-  --db-cluster-snapshot-identifier manual-backup-$(date +%Y%m%d)
-```
-
-## Next Steps
-
-1. Set up custom domain with Route 53
-2. Add CloudFront CDN for better performance
-3. Implement proper logging and monitoring
-4. Set up CI/CD pipeline with GitHub Actions
-
----
-
-## Support
-
-For issues with this deployment:
-1. Check AWS CloudWatch logs
-2. Review SAM documentation: https://docs.aws.amazon.com/serverless-application-model/
-3. AWS Lambda documentation: https://docs.aws.amazon.com/lambda/
+- **Google**: `https://holy-grail-api.chuggs.net/auth/google/callback`
+- **Discord**: `https://holy-grail-api.chuggs.net/auth/discord/callback`

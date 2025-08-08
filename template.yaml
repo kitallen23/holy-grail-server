@@ -5,7 +5,7 @@ Description: Diablo 2 Holy Grail Server
 Globals:
     Function:
         Timeout: 30
-        Runtime: nodejs18.x
+        Runtime: nodejs22.x
         Environment:
             Variables:
                 NODE_ENV: production
@@ -15,19 +15,17 @@ Parameters:
         Type: String
         Default: dev
         AllowedValues: [dev, prod]
-    DatabaseName:
-        Type: String
-        Default: d2_holy_grail
-    DBUsername:
-        Type: String
-        Default: postgres
-    DBPassword:
-        Type: String
-        NoEcho: true
-        MinLength: 8
-        Description: Database password (minimum 8 characters)
 
 Resources:
+    # API Gateway with Rate Limiting
+    ServerlessRestApi:
+        Type: AWS::Serverless::Api
+        Properties:
+            StageName: Prod
+            ThrottleConfig:
+                RateLimit: 100 # 100 requests per second
+                BurstLimit: 200 # 200 burst capacity
+
     # Lambda Function
     HolyGrailApi:
         Type: AWS::Serverless::Function
@@ -40,96 +38,24 @@ Resources:
                     Properties:
                         Path: /{proxy+}
                         Method: ANY
+                        RestApiId: !Ref ServerlessRestApi
                 RootEvent:
                     Type: Api
                     Properties:
                         Path: /
                         Method: ANY
+                        RestApiId: !Ref ServerlessRestApi
             Environment:
                 Variables:
                     DATABASE_URL: !Sub
-                        - "postgresql://${Username}:${Password}@${Endpoint}:5432/${DatabaseName}"
-                        - Username: !Ref DBUsername
-                          Password: !Ref DBPassword
-                          Endpoint: !GetAtt Database.Endpoint.Address
-                          DatabaseName: !Ref DatabaseName
+                        - "postgresql://neondb_owner:${password}@ep-square-forest-a71t907c-pooler.ap-southeast-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+                        - password: !Sub "{{resolve:ssm:/holy-grail/${Environment}/db-password}}"
                     CLIENT_URL: "https://holy-grail.chuggs.net"
+                    BASE_URL: !Sub "{{resolve:ssm:/holy-grail/${Environment}/base-url}}"
                     GOOGLE_CLIENT_ID: !Sub "{{resolve:ssm:/holy-grail/${Environment}/google-client-id}}"
                     GOOGLE_CLIENT_SECRET: !Sub "{{resolve:ssm:/holy-grail/${Environment}/google-client-secret}}"
                     DISCORD_CLIENT_ID: !Sub "{{resolve:ssm:/holy-grail/${Environment}/discord-client-id}}"
                     DISCORD_CLIENT_SECRET: !Sub "{{resolve:ssm:/holy-grail/${Environment}/discord-client-secret}}"
-
-    # RDS Serverless v2 Cluster
-    Database:
-        Type: AWS::RDS::DBCluster
-        Properties:
-            Engine: aurora-postgresql
-            EngineMode: provisioned
-            EngineVersion: "15.4"
-            DatabaseName: !Ref DatabaseName
-            MasterUsername: !Ref DBUsername
-            MasterUserPassword: !Ref DBPassword
-            ServerlessV2ScalingConfiguration:
-                MinCapacity: 0.5
-                MaxCapacity: 2
-            VpcSecurityGroupIds:
-                - !Ref DatabaseSecurityGroup
-            DBSubnetGroupName: !Ref DatabaseSubnetGroup
-
-    DatabaseInstance:
-        Type: AWS::RDS::DBInstance
-        Properties:
-            DBInstanceClass: db.serverless
-            DBClusterIdentifier: !Ref Database
-            Engine: aurora-postgresql
-
-    # VPC Configuration
-    VPC:
-        Type: AWS::EC2::VPC
-        Properties:
-            CidrBlock: 10.0.0.0/16
-            EnableDnsHostnames: true
-            EnableDnsSupport: true
-
-    DatabaseSubnetGroup:
-        Type: AWS::RDS::DBSubnetGroup
-        Properties:
-            DBSubnetGroupDescription: Subnet group for RDS
-            SubnetIds:
-                - !Ref PrivateSubnet1
-                - !Ref PrivateSubnet2
-
-    PrivateSubnet1:
-        Type: AWS::EC2::Subnet
-        Properties:
-            VpcId: !Ref VPC
-            CidrBlock: 10.0.1.0/24
-            AvailabilityZone: !Select [0, !GetAZs ""]
-
-    PrivateSubnet2:
-        Type: AWS::EC2::Subnet
-        Properties:
-            VpcId: !Ref VPC
-            CidrBlock: 10.0.2.0/24
-            AvailabilityZone: !Select [1, !GetAZs ""]
-
-    # Security Groups
-    DatabaseSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-            GroupDescription: Security group for RDS
-            VpcId: !Ref VPC
-            SecurityGroupIngress:
-                - IpProtocol: tcp
-                  FromPort: 5432
-                  ToPort: 5432
-                  SourceSecurityGroupId: !Ref LambdaSecurityGroup
-
-    LambdaSecurityGroup:
-        Type: AWS::EC2::SecurityGroup
-        Properties:
-            GroupDescription: Security group for Lambda
-            VpcId: !Ref VPC
 
     # Custom Cache Policy for API endpoints with query parameters
     ApiCachePolicy:
@@ -138,8 +64,8 @@ Resources:
             CachePolicyConfig:
                 Name: !Sub "${AWS::StackName}-api-cache-policy"
                 Comment: "Cache policy for API endpoints that need query parameters"
-                DefaultTTL: 300 # 5 minutes
-                MaxTTL: 86400 # 24 hours
+                DefaultTTL: 86400 # 24 hours
+                MaxTTL: 604800 # 7 days
                 MinTTL: 0
                 ParametersInCacheKeyAndForwardedToOrigin:
                     EnableAcceptEncodingGzip: true
@@ -197,6 +123,8 @@ Resources:
                       CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
                       OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
                       ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
+                      AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+                      CachedMethods: [GET, HEAD, OPTIONS]
                     # Don't cache user-specific endpoints
                     - PathPattern: "/user-items*"
                       TargetOriginId: ApiGatewayOrigin
@@ -204,6 +132,9 @@ Resources:
                       CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad # CachingDisabled
                       OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf
                       ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03
+                      AllowedMethods: [GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE]
+                      CachedMethods: [GET, HEAD, OPTIONS]
+
                 ViewerCertificate:
                     AcmCertificateArn: arn:aws:acm:us-east-1:930951674511:certificate/25fc7744-ca3f-4d39-a39e-7b74f5968bf4
                     SslSupportMethod: sni-only
@@ -222,6 +153,3 @@ Outputs:
     CustomDomainUrl:
         Description: Custom domain URL
         Value: "https://holy-grail-api.chuggs.net"
-    DatabaseEndpoint:
-        Description: RDS Cluster Endpoint
-        Value: !GetAtt Database.Endpoint.Address

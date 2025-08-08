@@ -25,3 +25,5 @@ export const userItems = pgTable("user_items", {
     found: boolean("found").default(false).notNull(),
     foundAt: timestamp("found_at"),
 });
+
+
