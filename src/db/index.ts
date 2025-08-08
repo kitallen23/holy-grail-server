@@ -5,7 +5,7 @@ import * as schema from "./schema.js";
 const connectionString = process.env.DATABASE_URL!;
 const client = postgres(connectionString, {
     max: 1, // Single connection for Lambda
-    idle_timeout: 2, // Close idle connections quickly (seconds)
+    idle_timeout: 0.1,
     connect_timeout: 10, // Fast connection timeout (seconds)
     max_lifetime: 60 * 30, // 30 min max connection life (seconds)
     transform: { undefined: null },
