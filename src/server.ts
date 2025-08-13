@@ -1,5 +1,6 @@
 import { createApp } from "./app-factory.js";
 import { cleanupExpiredSessions } from "./lib/auth.js";
+import { cleanupExpiredOAuthStates } from "./lib/oauth-cleanup.js";
 
 const start = async () => {
     const app = await createApp();
@@ -10,9 +11,11 @@ const start = async () => {
         console.info(`Server running on port ${port}`);
 
         cleanupExpiredSessions();
+        cleanupExpiredOAuthStates();
         setInterval(
             async () => {
                 await cleanupExpiredSessions();
+                await cleanupExpiredOAuthStates();
             },
             24 * 60 * 60 * 1000
         ); // Daily cleanup

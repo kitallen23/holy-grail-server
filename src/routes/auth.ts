@@ -79,13 +79,20 @@ export async function authRoutes(fastify: FastifyInstance) {
             }
         }
 
-        reply.setCookie("session", "", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 0,
-            path: "/",
-        });
+        // Manually set cookie header to clear session cookie
+        const cookieOptions = [
+            "session=",
+            "Max-Age=0",
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Lax",
+            process.env.NODE_ENV === "production" ? "Secure" : "",
+            process.env.NODE_ENV === "production" ? "Domain=.chuggs.net" : "",
+        ]
+            .filter(Boolean)
+            .join("; ");
+
+        reply.header("Set-Cookie", cookieOptions);
 
         return { success: true };
     });
@@ -178,14 +185,20 @@ export async function authRoutes(fastify: FastifyInstance) {
         const token = generateSessionToken();
         await createSession(token, user[0].id);
 
-        reply.setCookie("session", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 30,
-            path: "/",
-            domain: process.env.NODE_ENV === "production" ? ".chuggs.net" : undefined,
-        });
+        // Manually set cookie header to work around Fastify/Vercel serialization issue
+        const cookieOptions = [
+            `session=${token}`,
+            `Max-Age=${60 * 60 * 24 * 30}`,
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Lax",
+            process.env.NODE_ENV === "production" ? "Secure" : "",
+            process.env.NODE_ENV === "production" ? "Domain=.chuggs.net" : "",
+        ]
+            .filter(Boolean)
+            .join("; ");
+
+        reply.header("Set-Cookie", cookieOptions);
 
         const redirectUrl = process.env.CLIENT_URL || "http://localhost:5173";
         reply.redirect(redirectUrl);
@@ -201,8 +214,6 @@ export async function authRoutes(fastify: FastifyInstance) {
 
         // Handle OAuth errors (user cancelled, access denied, etc.)
         if (error) {
-            // Clear the oauth_state cookie
-
             // Redirect back to client with error info
             const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
             const redirectUrl = new URL(clientUrl);
@@ -219,7 +230,6 @@ export async function authRoutes(fastify: FastifyInstance) {
             .from(oauthStates)
             .where(eq(oauthStates.state, state))
             .limit(1);
-        console.log(`validState: `, validState);
 
         if (!validState.length) {
             reply.code(400);

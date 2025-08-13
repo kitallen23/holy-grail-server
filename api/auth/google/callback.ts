@@ -6,7 +6,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const app = await createApp();
     await app.ready();
 
-    const url = `/auth/discord/callback${req.url?.includes("?") ? req.url.substring(req.url.indexOf("?")) : ""}`;
+    const url = `/auth/google/callback${req.url?.includes("?") ? req.url.substring(req.url.indexOf("?")) : ""}`;
 
     const response = await app.inject({
         method: getHttpMethod(req.method),

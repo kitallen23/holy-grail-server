@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { createApp } from "../../src/app-factory.js";
-import { getHttpMethod, forwardHeaders } from "../lib/types.js";
+import { getHttpMethod, forwardHeaders } from "../lib/vercel-utils.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const app = await createApp();

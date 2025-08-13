@@ -26,7 +26,8 @@ export function forwardHeaders(
             (lowerKey.startsWith("access-control-") ||
                 lowerKey === "cache-control" ||
                 lowerKey === "pragma" ||
-                lowerKey === "expires") &&
+                lowerKey === "expires" ||
+                lowerKey === "set-cookie") &&
             value
         ) {
             res.setHeader(key, String(value));
