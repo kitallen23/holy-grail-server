@@ -1,28 +1,12 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
-import { createApp } from "../../src/app-factory.js";
-import { getHttpMethod, forwardHeaders } from "../lib/types.js";
+import { createApp } from "../../../src/app-factory.js";
+import { getHttpMethod, forwardHeaders } from "../../lib/types.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const app = await createApp();
     await app.ready();
 
-    const { slug } = req.query;
-    const slugArray = Array.isArray(slug) ? slug : [slug];
-    const basePath = `/auth/${slugArray.join("/")}`;
-
-    // Properly reconstruct query string from query parameters (excluding slug)
-    const queryString = new URLSearchParams();
-    Object.entries(req.query).forEach(([key, value]) => {
-        if (key !== "slug") {
-            if (Array.isArray(value)) {
-                value.forEach((v) => queryString.append(key, String(v)));
-            } else if (value) {
-                queryString.append(key, String(value));
-            }
-        }
-    });
-
-    const url = basePath + (queryString.toString() ? `?${queryString.toString()}` : "");
+    const url = `/auth/discord/callback${req.url?.includes("?") ? req.url.substring(req.url.indexOf("?")) : ""}`;
 
     const response = await app.inject({
         method: getHttpMethod(req.method),
