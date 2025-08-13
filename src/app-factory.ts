@@ -34,7 +34,7 @@ export async function createApp() {
             });
         }
 
-        fastify.log.error(error);
+        console.error(error);
         if (process.env.NODE_ENV !== "production") {
             console.error(`Error: `, error);
         }

@@ -6,15 +6,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const app = await createApp();
     await app.ready();
 
-    const { slug } = req.query;
-    const slugArray = Array.isArray(slug) ? slug : [slug];
+    const { itemKey } = req.query;
+    const itemKeyStr = Array.isArray(itemKey) ? itemKey.join("/") : itemKey;
 
-    // Handle root path (empty slug) vs item key path
-    const path = slugArray[0] ? `/items/${slugArray.join("/")}` : "/items";
+    if (!itemKeyStr) {
+        return res.status(400).json({ error: "Runeword key required" });
+    }
+
+    const url = `/items/${itemKeyStr}`;
 
     const response = await app.inject({
         method: getHttpMethod(req.method),
-        url: path + (req.url?.includes("?") ? "?" + req.url.split("?")[1] : ""),
+        url,
         headers: req.headers as Record<string, string>,
         payload: req.body,
     });

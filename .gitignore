@@ -55,3 +55,4 @@ bruno/environments/production.bru
 *.tmp
 *.temp
 
+.vercel

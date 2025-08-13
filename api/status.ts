@@ -8,7 +8,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const response = await app.inject({
         method: getHttpMethod(req.method),
-        url: "/status/status",
+        url: "/status",
         headers: req.headers as Record<string, string>,
         payload: req.body,
     });

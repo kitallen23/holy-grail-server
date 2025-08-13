@@ -1,55 +1,52 @@
-# AWS Serverless Deployment
+# Vercel Serverless Deployment
 
-The Diablo 2 Holy Grail Server is deployed on AWS using a serverless architecture with Lambda + Neon PostgreSQL + CloudFront CDN.
+The Diablo 2 Holy Grail Server is deployed on Vercel using serverless functions with Neon PostgreSQL.
 
 ## Architecture
 
-- **API**: `https://holy-grail-api.chuggs.net` (CloudFront CDN)
-- **Backend**: AWS Lambda with Fastify
+- **API**: `https://holy-grail-api.chuggs.net` (planned via Route53 CNAME)
+- **Backend**: Vercel Serverless Functions with Fastify
 - **Database**: Neon PostgreSQL (serverless, auto-scales to zero)
-- **Cost**: ~$0-5/month (Neon free tier + AWS Lambda costs)
+- **Cost**: ~$0-5/month (Neon free tier + Vercel hobby/pro costs)
 
 ## Initial Setup
 
 ### Prerequisites
 
-- AWS CLI configured with credentials
-- AWS SAM CLI installed (`brew install aws-sam-cli`)
+- Vercel CLI installed (`npm i -g vercel`)
 - Node.js 22+ and pnpm
 - Neon account (free at https://neon.tech)
+- Vercel account
 
 ### Neon Database Setup
 
 1. Create a Neon account at https://neon.tech
 2. Create a new project with PostgreSQL 16 or 17
-3. Choose AWS Sydney region (ap-southeast-2) for best performance
+3. Choose AWS Sydney region (ap-southeast-2) for optimal performance
 4. Copy your connection string from the Neon dashboard
 
-### Store Secrets
+### Environment Variables Setup
+
+You can set environment variables via the Vercel web UI or CLI:
+
+**Via Vercel CLI:**
 
 ```bash
-# Store OAuth credentials and database password in AWS Parameter Store
-aws ssm put-parameter --name "/holy-grail/prod/google-client-id" --value "your-value" --type "String"
-aws ssm put-parameter --name "/holy-grail/prod/google-client-secret" --value "your-value" --type "String"
-aws ssm put-parameter --name "/holy-grail/prod/discord-client-id" --value "your-value" --type "String"
-aws ssm put-parameter --name "/holy-grail/prod/discord-client-secret" --value "your-value" --type "String"
-aws ssm put-parameter --name "/holy-grail/prod/db-password" --value "your-neon-password" --type "String"
+# Store OAuth credentials and database connection
+vercel env add DATABASE_URL
+vercel env add CLIENT_URL
+vercel env add GOOGLE_CLIENT_ID
+vercel env add GOOGLE_CLIENT_SECRET
+vercel env add DISCORD_CLIENT_ID
+vercel env add DISCORD_CLIENT_SECRET
+vercel env add BASE_URL
 ```
 
-### First Deployment
+**Via Web UI:**
 
-```bash
-pnpm build
-sam build
-sam deploy --guided
-```
-
-Follow prompts:
-
-- Stack name: `holy-grail-server`
-- Region: `ap-southeast-4` (Melbourne)
-- Environment: `prod`
-- Confirm all other defaults
+1. Go to your project dashboard on vercel.com
+2. Navigate to Settings → Environment Variables
+3. Add the required variables for all environments (Development, Preview, Production)
 
 ### Database Setup
 
@@ -58,18 +55,18 @@ Run migrations locally using the standard Drizzle workflow (see "Database Migrat
 ## Regular Deployment
 
 ```bash
-# Build and deploy updates
-pnpm build
-sam build
-sam deploy
+# Deploy to production
+vercel --prod
 
-# View logs
-sam logs -n HolyGrailApi --tail
+# View deployment logs
+vercel logs [deployment-url]
 ```
+
+**Build Process Note:** The `pnpm run build:vercel` command only runs TypeScript type checking since Vercel handles the serverless function bundling automatically.
 
 ## Database Migrations
 
-Database migrations are handled locally using the standard Drizzle workflow. No more complex API endpoints or VPC networking issues!
+Database migrations are handled locally using the standard Drizzle workflow.
 
 ### Running Migrations
 
@@ -85,10 +82,8 @@ pnpm db:generate
 # 3. Apply migrations to Neon database
 pnpm db:migrate
 
-# 4. Build and deploy your API
-pnpm build
-sam build
-sam deploy
+# 4. Deploy your API
+vercel --prod
 ```
 
 **Future schema changes:**
@@ -97,7 +92,7 @@ sam deploy
 # 1. Update your schema in src/db/schema.ts
 # 2. Generate new migration: pnpm db:generate
 # 3. Apply migration: pnpm db:migrate
-# 4. Deploy API: pnpm build && sam build && sam deploy
+# 4. Deploy API: vercel --prod
 ```
 
 ### Benefits
@@ -110,57 +105,32 @@ sam deploy
 
 ## Key Files
 
-- `template.yaml` - Complete AWS infrastructure as code
-- `src/lambda.ts` - Lambda handler for Fastify app
-- `samconfig.toml` - Deployment configuration (safe to commit)
+- `vercel.json` - Vercel deployment configuration
+- `api/` - Serverless function endpoints (auto-routed by Vercel)
+- `src/` - Application source code
 
-## Secrets Management
+## Environment Variables
 
-All secrets are stored in AWS Parameter Store:
+All secrets are stored in Vercel environment variables:
 
-- `/holy-grail/prod/google-client-id`
-- `/holy-grail/prod/google-client-secret`
-- `/holy-grail/prod/discord-client-id`
-- `/holy-grail/prod/discord-client-secret`
-- `/holy-grail/prod/db-password`
+- `DATABASE_URL`
+- `CLIENT_URL`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `DISCORD_CLIENT_ID`
+- `DISCORD_CLIENT_SECRET`
+- `BASE_URL`
 
-## CloudFront Caching
+## Domain Configuration
 
-- **Cached**: `/items*` and `/runewords*` endpoints (static game data)
-- **Not Cached**: `/auth*` and `/user-items*` endpoints (dynamic user data)
-- **Custom Policy**: Forwards all query parameters while maintaining cache efficiency
-
-## CloudFront Origin Request Policies
-
-Critical configuration for OAuth and session management:
-
-### Policy Requirements
-
-- **`/auth*` endpoints**: Must use `AllViewerExceptHostHeader` policy
-  - Forwards all query parameters (required for OAuth state validation)
-  - Forwards all cookies (required for session management)
-  - Without this, OAuth callbacks will fail with state validation errors
-
-- **`/user-items*` endpoints**: Must use `AllViewerExceptHostHeader` policy  
-  - Forwards session cookies for authentication
-  - Must match `/auth*` policy to prevent cookie forwarding mismatches
-
-- **`/items*` and `/runewords*`**: Can use `CORS-S3Origin` policy
-  - Public endpoints that don't require cookies or complex query parameters
-  - Optimized for caching static game data
-
-### Session Cookie Configuration
-
-Session cookies are set with `domain: ".chuggs.net"` to enable sharing between:
-- Frontend: `holy-grail.chuggs.net` 
-- API: `holy-grail-api.chuggs.net`
-
-This allows the frontend to access session cookies set by the API after OAuth redirects.
+- **Current**: Using default Vercel deployment URL
+- **Planned**: Custom domain `holy-grail-api.chuggs.net` via AWS Route53 CNAME record
+- **Setup**: Route53 → CNAME → Vercel deployment URL
 
 ## Database
 
 - **Provider**: Neon PostgreSQL (serverless)
-- **Region**: AWS Sydney (ap-southeast-2) for optimal performance with Lambda in Melbourne (ap-southeast-4)
+- **Region**: AWS Sydney (ap-southeast-2) for optimal performance
 - **Connection**: Pooled connection with SSL required
 - **Auto-scaling**: Scales to zero when idle (free tier available)
 - **Backups**: Automatic backups with point-in-time recovery
@@ -168,15 +138,16 @@ This allows the frontend to access session cookies set by the API after OAuth re
 ## Security Features
 
 - Database accessible over internet with SSL/TLS encryption
-- Connection pooling for optimal Lambda performance
-- AWS Shield Standard DDoS protection
-- API Gateway rate limiting
-- Lambda concurrency limits prevent runaway costs
-- All secrets stored in AWS Parameter Store
+- Connection pooling for optimal serverless performance
+- Vercel edge network with DDoS protection
+- Environment variables encrypted at rest
+- Serverless functions auto-scale with built-in limits
 
 ## OAuth Configuration
 
-Update OAuth applications with CloudFront URLs:
+OAuth callback URLs will need to be updated once domain routing is finalized:
 
 - **Google**: `https://holy-grail-api.chuggs.net/auth/google/callback`
 - **Discord**: `https://holy-grail-api.chuggs.net/auth/discord/callback`
+
+_Note: Currently working through routing configuration for custom domain setup._

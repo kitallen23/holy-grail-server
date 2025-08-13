@@ -29,7 +29,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Handle cookies
     const cookies = response.cookies;
     if (cookies) {
-        cookies.forEach((cookie) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        cookies.forEach((cookie: any) => {
             res.setHeader("Set-Cookie", cookie.toString());
         });
     }

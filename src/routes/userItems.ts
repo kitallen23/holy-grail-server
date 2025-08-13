@@ -100,7 +100,9 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             .from(userItems)
             .where(and(eq(userItems.userId, userId), inArray(userItems.itemKey, itemKeys)));
 
-        const existingMap = new Map(existing.map((record) => [record.itemKey, record]));
+        const existingMap = new Map<string, typeof userItems.$inferSelect>(
+            existing.map((record: typeof userItems.$inferSelect) => [record.itemKey, record])
+        );
 
         const itemsToInsert: {
             userId: string;
@@ -111,11 +113,14 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
 
         const itemsToUpdate: {
             id: string;
+            found: boolean;
             foundAt: Date;
         }[] = [];
 
         for (const item of validItemsToImport) {
-            const existingRecord = existingMap.get(item.itemKey);
+            const existingRecord: typeof userItems.$inferSelect | undefined = existingMap.get(
+                item.itemKey
+            );
 
             if (!existingRecord) {
                 // Item not in DB - add it
@@ -129,6 +134,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
                 // Item exists but not found - update it
                 itemsToUpdate.push({
                     id: existingRecord.id,
+                    found: true,
                     foundAt: item.foundAt ? new Date(item.foundAt) : new Date(),
                 });
             }
@@ -141,7 +147,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         }
 
         if (itemsToUpdate.length > 0) {
-            await db.transaction(async (tx) => {
+            await db.transaction(async (tx: typeof db) => {
                 const promises = itemsToUpdate.map((updateItem) =>
                     tx
                         .update(userItems)

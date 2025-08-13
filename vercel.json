@@ -1,22 +1,14 @@
 {
     "version": 2,
-    "builds": [
+    "regions": ["syd1"],
+    "buildCommand": "pnpm run build:vercel",
+    "outputDirectory": ".",
+    "rewrites": [
         {
-            "src": "api/**/*.ts",
-            "use": "@vercel/node"
+            "source": "/(.*)",
+            "destination": "/api/$1"
         }
     ],
-    "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "/api/$1"
-        }
-    ],
-    "functions": {
-        "api/**/*.ts": {
-            "runtime": "nodejs22.x"
-        }
-    },
     "env": {
         "NODE_ENV": "production"
     }
