@@ -19,32 +19,23 @@ function generateUserId(): string {
 
 export async function authRoutes(fastify: FastifyInstance) {
     fastify.get("/me", async (request, reply) => {
-        const startTime = Date.now();
-        console.info(`[TIMING] /auth/me request start: ${startTime}`);
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
 
         const token = request.cookies.session;
-        console.info(`[TIMING] /auth/me got session cookie: ${Date.now() - startTime}ms`);
-        
         if (!token) {
-            console.info(`[TIMING] /auth/me no token, returning 401: ${Date.now() - startTime}ms`);
             reply.code(401).send({ error: "Not authenticated" });
             return;
         }
 
-        console.info(`[TIMING] /auth/me before validateSessionToken: ${Date.now() - startTime}ms`);
         const { user } = await validateSessionToken(token);
-        console.info(`[TIMING] /auth/me after validateSessionToken: ${Date.now() - startTime}ms`);
-        
         if (!user) {
-            console.info(`[TIMING] /auth/me invalid session, returning 401: ${Date.now() - startTime}ms`);
             reply.code(401).send({ error: "Invalid session" });
             return;
         }
 
         const response = { email: user.email };
-        console.info(`[TIMING] /auth/me response created: ${Date.now() - startTime}ms`);
-
-        console.info(`[TIMING] /auth/me before return: ${Date.now() - startTime}ms`);
         return response;
     });
 
@@ -76,6 +67,10 @@ export async function authRoutes(fastify: FastifyInstance) {
 
     // Logout
     fastify.post("/logout", async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const token = request.cookies.session;
         if (token) {
             const { session } = await validateSessionToken(token);

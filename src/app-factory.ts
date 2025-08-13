@@ -21,10 +21,17 @@ export async function createApp() {
     await fastify.register(cors, {
         origin: process.env.CLIENT_URL || "http://localhost:5173",
         credentials: true,
-        methods: ["GET", "HEAD", "POST", "DELETE"],
+        methods: ["GET", "HEAD", "POST", "DELETE", "OPTIONS"],
     });
     await fastify.register(helmet);
     await fastify.register(cookie);
+
+    fastify.addHook("onRequest", async (request) => {
+        console.log(`[FASTIFY] ${request.method} ${request.url}`);
+        if (request.method === "OPTIONS") {
+            console.log(`[FASTIFY OPTIONS] Headers:`, request.headers);
+        }
+    });
 
     fastify.setErrorHandler((error, _, reply) => {
         if (error instanceof HttpError) {
