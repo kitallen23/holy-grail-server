@@ -19,19 +19,33 @@ function generateUserId(): string {
 
 export async function authRoutes(fastify: FastifyInstance) {
     fastify.get("/me", async (request, reply) => {
+        const startTime = Date.now();
+        console.info(`[TIMING] /auth/me request start: ${startTime}`);
+
         const token = request.cookies.session;
+        console.info(`[TIMING] /auth/me got session cookie: ${Date.now() - startTime}ms`);
+        
         if (!token) {
+            console.info(`[TIMING] /auth/me no token, returning 401: ${Date.now() - startTime}ms`);
             reply.code(401).send({ error: "Not authenticated" });
             return;
         }
 
+        console.info(`[TIMING] /auth/me before validateSessionToken: ${Date.now() - startTime}ms`);
         const { user } = await validateSessionToken(token);
+        console.info(`[TIMING] /auth/me after validateSessionToken: ${Date.now() - startTime}ms`);
+        
         if (!user) {
+            console.info(`[TIMING] /auth/me invalid session, returning 401: ${Date.now() - startTime}ms`);
             reply.code(401).send({ error: "Invalid session" });
             return;
         }
 
-        return { email: user.email };
+        const response = { email: user.email };
+        console.info(`[TIMING] /auth/me response created: ${Date.now() - startTime}ms`);
+
+        console.info(`[TIMING] /auth/me before return: ${Date.now() - startTime}ms`);
+        return response;
     });
 
     // Google OAuth initiation

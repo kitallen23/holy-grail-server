@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import postgres from "postgres";
+import { neon } from "@neondatabase/serverless";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -28,13 +28,8 @@ export async function statusRoutes(fastify: FastifyInstance) {
             };
 
             try {
-                const sql = postgres(process.env.DATABASE_URL!, {
-                    max: 1,
-                    connect_timeout: 5, // Quick timeout for health checks
-                });
-
+                const sql = neon(process.env.DATABASE_URL!);
                 await sql`SELECT 1`; // Simple connectivity test
-                await sql.end();
 
                 checks.database = "connected";
                 return checks;
@@ -60,13 +55,9 @@ export async function statusRoutes(fastify: FastifyInstance) {
         },
         async (_, reply) => {
             try {
-                const sql = postgres(process.env.DATABASE_URL!, {
-                    max: 1,
-                    connect_timeout: 5,
-                });
+                const sql = neon(process.env.DATABASE_URL!);
 
                 const result = await sql`SELECT version(), current_database(), current_user`;
-                await sql.end();
 
                 return {
                     status: "healthy",

@@ -8,11 +8,26 @@ import { HttpError } from "../types/errors.js";
 export async function userItemsRoutes(fastify: FastifyInstance) {
     // Get user's grail items
     fastify.get("/", { preHandler: requireAuth }, async (request) => {
+        const startTime = Date.now();
+        console.info(`[TIMING] /user-items request start: ${startTime}`);
+
+        console.info(`[TIMING] /user-items after auth middleware: ${Date.now() - startTime}ms`);
+
         const userId = request.user!.id;
+        console.info(
+            `[TIMING] /user-items got userId, before DB query: ${Date.now() - startTime}ms`
+        );
 
         const foundItems = await db.select().from(userItems).where(eq(userItems.userId, userId));
+        console.info(
+            `[TIMING] /user-items DB query complete, ${foundItems.length} items: ${Date.now() - startTime}ms`
+        );
 
-        return { items: foundItems };
+        const response = { items: foundItems };
+        console.info(`[TIMING] /user-items response object created: ${Date.now() - startTime}ms`);
+
+        console.info(`[TIMING] /user-items before return: ${Date.now() - startTime}ms`);
+        return response;
     });
 
     // Mark item as found/unfound

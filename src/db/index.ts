@@ -1,15 +1,11 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
 import * as schema from "./schema.js";
 
-const connectionString = process.env.DATABASE_URL!;
-const client = postgres(connectionString, {
-    max: 1, // Single connection for Lambda
-    idle_timeout: 0.1,
-    connect_timeout: 10, // Fast connection timeout (seconds)
-    max_lifetime: 60 * 30, // 30 min max connection life (seconds)
-    transform: { undefined: null },
-    prepare: false, // Disable prepared statements for Lambda
-    onnotice: () => {}, // Disable notices to prevent hanging
+// Configure Neon to disable HTTP keep-alive to prevent Lambda hanging
+const sql = neon(process.env.DATABASE_URL!, {
+    fetchOptions: {
+        keepalive: false,
+    },
 });
-export const db = drizzle(client, { schema });
+export const db = drizzle(sql, { schema });
