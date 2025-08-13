@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 import { createApp } from "../../src/app-factory.js";
-import { getHttpMethod, forwardHeaders } from "../lib/vercel-utils.js";
+import { getHttpMethod, forwardHeaders, filterHeaders } from "../lib/vercel-utils.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const app = await createApp();
@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const response = await app.inject({
         method: getHttpMethod(req.method),
         url,
-        headers: req.headers as Record<string, string>,
+        headers: filterHeaders(req.headers),
         payload: req.body,
     });
 
