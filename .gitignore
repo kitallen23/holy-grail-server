@@ -55,8 +55,4 @@ bruno/environments/production.bru
 *.tmp
 *.temp
 
-# AWS SAM
-.aws-sam/
-
-# Keep these SAM files (they're safe to commit):
-# samconfig.toml - deployment configuration
+.vercel

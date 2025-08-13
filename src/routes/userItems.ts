@@ -7,31 +7,23 @@ import { HttpError } from "../types/errors.js";
 
 export async function userItemsRoutes(fastify: FastifyInstance) {
     // Get user's grail items
-    fastify.get("/", { preHandler: requireAuth }, async (request) => {
-        const startTime = Date.now();
-        console.info(`[TIMING] /user-items request start: ${startTime}`);
-
-        console.info(`[TIMING] /user-items after auth middleware: ${Date.now() - startTime}ms`);
+    fastify.get("/", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
 
         const userId = request.user!.id;
-        console.info(
-            `[TIMING] /user-items got userId, before DB query: ${Date.now() - startTime}ms`
-        );
-
         const foundItems = await db.select().from(userItems).where(eq(userItems.userId, userId));
-        console.info(
-            `[TIMING] /user-items DB query complete, ${foundItems.length} items: ${Date.now() - startTime}ms`
-        );
-
         const response = { items: foundItems };
-        console.info(`[TIMING] /user-items response object created: ${Date.now() - startTime}ms`);
-
-        console.info(`[TIMING] /user-items before return: ${Date.now() - startTime}ms`);
         return response;
     });
 
     // Mark item as found/unfound
-    fastify.post("/set", { preHandler: requireAuth }, async (request) => {
+    fastify.post("/set", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const { itemKey, found } = request.body as { itemKey: string; found: boolean };
         const userId = request.user!.id;
 
@@ -78,7 +70,11 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         return { success: true, found };
     });
 
-    fastify.post("/set-bulk", { preHandler: requireAuth }, async (request) => {
+    fastify.post("/set-bulk", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const { items: itemsToImport } = request.body as {
             items: { itemKey: string; foundAt?: string; found: boolean }[];
         };
@@ -100,7 +96,9 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             .from(userItems)
             .where(and(eq(userItems.userId, userId), inArray(userItems.itemKey, itemKeys)));
 
-        const existingMap = new Map(existing.map((record) => [record.itemKey, record]));
+        const existingMap = new Map<string, typeof userItems.$inferSelect>(
+            existing.map((record: typeof userItems.$inferSelect) => [record.itemKey, record])
+        );
 
         const itemsToInsert: {
             userId: string;
@@ -111,11 +109,14 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
 
         const itemsToUpdate: {
             id: string;
+            found: boolean;
             foundAt: Date;
         }[] = [];
 
         for (const item of validItemsToImport) {
-            const existingRecord = existingMap.get(item.itemKey);
+            const existingRecord: typeof userItems.$inferSelect | undefined = existingMap.get(
+                item.itemKey
+            );
 
             if (!existingRecord) {
                 // Item not in DB - add it
@@ -129,6 +130,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
                 // Item exists but not found - update it
                 itemsToUpdate.push({
                     id: existingRecord.id,
+                    found: true,
                     foundAt: item.foundAt ? new Date(item.foundAt) : new Date(),
                 });
             }
@@ -141,7 +143,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         }
 
         if (itemsToUpdate.length > 0) {
-            await db.transaction(async (tx) => {
+            await db.transaction(async (tx: typeof db) => {
                 const promises = itemsToUpdate.map((updateItem) =>
                     tx
                         .update(userItems)
@@ -166,7 +168,11 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         };
     });
 
-    fastify.delete("/clear", { preHandler: requireAuth }, async (request) => {
+    fastify.delete("/clear", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const userId = request.user!.id;
 
         await db.delete(userItems).where(eq(userItems.userId, userId));

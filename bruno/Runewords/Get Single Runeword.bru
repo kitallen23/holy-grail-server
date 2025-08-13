@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/runewords/Enigma
+  url: {{baseUrl}}/runewords/:itemKey
   body: none
   auth: inherit
+}
+
+params:path {
+  itemKey: Enigma
 }

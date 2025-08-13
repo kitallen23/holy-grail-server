@@ -1,0 +1,15 @@
+{
+    "version": 2,
+    "regions": ["syd1"],
+    "buildCommand": "pnpm run build:vercel",
+    "outputDirectory": ".",
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/api/$1"
+        }
+    ],
+    "env": {
+        "NODE_ENV": "production"
+    }
+}
