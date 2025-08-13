@@ -20,8 +20,9 @@
         "db:restart": "docker restart d2-postgres",
         "db:logs": "docker logs d2-postgres -f",
         "dev:full": "pnpm db:start && pnpm dev",
-        "sam:build": "sam build",
-        "sam:deploy": "sam deploy --guided"
+        "vercel:dev": "vercel dev",
+        "vercel:deploy": "vercel --prod",
+        "vercel:preview": "vercel"
     },
     "keywords": [],
     "author": "",
@@ -37,16 +38,19 @@
         "@oslojs/encoding": "^1.1.0",
         "@oslojs/oauth2": "^0.5.0",
         "@types/bcrypt": "^5.0.2",
+        "@types/pg": "^8.15.5",
         "arctic": "^3.7.0",
         "bcrypt": "^6.0.0",
         "dotenv": "^16.5.0",
         "drizzle-kit": "^0.31.1",
         "drizzle-orm": "^0.44.2",
-        "fastify": "^5.3.3"
+        "fastify": "^5.3.3",
+        "pg": "^8.16.3"
     },
     "devDependencies": {
         "@eslint/js": "^9.28.0",
         "@types/node": "^24.0.0",
+        "@vercel/node": "^5.3.11",
         "eslint": "^9.28.0",
         "eslint-config-prettier": "^10.1.5",
         "eslint-plugin-import": "^2.32.0",
