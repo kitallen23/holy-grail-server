@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@fastify/aws-lambda':
-        specifier: ^6.0.0
-        version: 6.0.0
       '@fastify/cookie':
         specifier: ^11.0.2
         version: 11.0.2
@@ -60,9 +57,6 @@ importers:
       '@eslint/js':
         specifier: ^9.28.0
         version: 9.28.0
-      '@types/aws-lambda':
-        specifier: ^8.10.152
-        version: 8.10.152
       '@types/node':
         specifier: ^24.0.0
         version: 24.0.0
@@ -427,9 +421,6 @@ packages:
   '@fastify/ajv-compiler@4.0.2':
     resolution: {integrity: sha512-Rkiu/8wIjpsf46Rr+Fitd3HRP+VsxUFDDeag0hs9L0ksfnwx2g7SPQQTFL0E8Qv+rfXzQOxBJnjUB9ITUDjfWQ==}
 
-  '@fastify/aws-lambda@6.0.0':
-    resolution: {integrity: sha512-4elLd+E0wjwj82T42pQlb3UXceVh8Wh8ADvoT5QIWBF39n4mIGL751UlHlA5W4frYZ8w45Tw0GeqhmIEGc2QKw==}
-
   '@fastify/cookie@11.0.2':
     resolution: {integrity: sha512-GWdwdGlgJxyvNv+QcKiGNevSspMQXncjMZ1J8IvuDQk0jvkzgWWZFNC2En3s+nHndZBGV8IbLwOI/sxCZw/mzA==}
 
@@ -520,9 +511,6 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
-
-  '@types/aws-lambda@8.10.152':
-    resolution: {integrity: sha512-soT/c2gYBnT5ygwiHPmd9a1bftj462NWVk2tKCc1PYHSIacB2UwbTS2zYG4jzag1mRDuzg/OjtxQjQ2NKRB6Rw==}
 
   '@types/bcrypt@5.0.2':
     resolution: {integrity: sha512-6atioO8Y75fNcbmj0G7UjI9lXN2pQ/IGJ2FWT4a/btd0Lk9lQalHLKhkgKVZ3r+spnmWUKfbMi1GEe9wyHQfNQ==}
@@ -2071,8 +2059,6 @@ snapshots:
       ajv-formats: 3.0.1(ajv@8.17.1)
       fast-uri: 3.0.6
 
-  '@fastify/aws-lambda@6.0.0': {}
-
   '@fastify/cookie@11.0.2':
     dependencies:
       cookie: 1.0.2
@@ -2167,8 +2153,6 @@ snapshots:
   '@oslojs/oauth2@0.5.0': {}
 
   '@rtsao/scc@1.1.0': {}
-
-  '@types/aws-lambda@8.10.152': {}
 
   '@types/bcrypt@5.0.2':
     dependencies:
