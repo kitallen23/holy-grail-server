@@ -26,12 +26,11 @@ export async function createApp() {
     await fastify.register(helmet);
     await fastify.register(cookie);
 
-    fastify.addHook("onRequest", async (request) => {
-        console.log(`[FASTIFY] ${request.method} ${request.url}`);
-        if (request.method === "OPTIONS") {
-            console.log(`[FASTIFY OPTIONS] Headers:`, request.headers);
-        }
-    });
+    if (process.env.NODE_ENV !== "production") {
+        fastify.addHook("onRequest", async (request) => {
+            console.info(`[FASTIFY] ${request.method} ${request.url}`);
+        });
+    }
 
     fastify.setErrorHandler((error, _, reply) => {
         if (error instanceof HttpError) {
@@ -42,10 +41,6 @@ export async function createApp() {
         }
 
         console.error(error);
-        if (process.env.NODE_ENV !== "production") {
-            console.error(`Error: `, error);
-        }
-
         return reply.code(500).send({
             error: "Internal Server Error",
             statusCode: 500,
