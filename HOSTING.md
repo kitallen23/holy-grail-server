@@ -4,7 +4,7 @@ The Diablo 2 Holy Grail Server is deployed on Vercel using serverless functions 
 
 ## Architecture
 
-- **API**: `https://holy-grail-api.chuggs.net` (planned via Route53 CNAME)
+- **API**: `https://holy-grail-api.chuggs.net` (deployed via Route53 CNAME)
 - **Backend**: Vercel Serverless Functions with Fastify
 - **Database**: Neon PostgreSQL (serverless, auto-scales to zero)
 - **Cost**: ~$0-5/month (Neon free tier + Vercel hobby/pro costs)
@@ -76,13 +76,10 @@ Database migrations are handled locally using the standard Drizzle workflow.
 # 1. Set your DATABASE_URL locally
 export DATABASE_URL="postgresql://username:password@your-neon-endpoint/dbname?sslmode=require"
 
-# 2. Generate migration files from schema
-pnpm db:generate
-
-# 3. Apply migrations to Neon database
+# 2. Push schema changes directly to Neon database
 pnpm db:migrate
 
-# 4. Deploy your API
+# 3. Deploy your API
 vercel --prod
 ```
 
@@ -90,18 +87,19 @@ vercel --prod
 
 ```bash
 # 1. Update your schema in src/db/schema.ts
-# 2. Generate new migration: pnpm db:generate
-# 3. Apply migration: pnpm db:migrate
-# 4. Deploy API: vercel --prod
+# 2. Push changes to database: pnpm db:migrate
+# 3. Deploy API: vercel --prod
 ```
+
+**Note:** This project uses `drizzle-kit push` which directly applies schema changes to the database. If you need versioned migration files (for team development), use `pnpm db:generate` to create migration files before pushing.
 
 ### Benefits
 
-- ✅ Run migrations from your local machine
+- ✅ Run schema changes from your local machine
 - ✅ Proper schema diffing and conflict detection
 - ✅ Interactive prompts for destructive changes
-- ✅ No need to deploy code just to run migrations
-- ✅ Standard Drizzle workflow that other developers expect
+- ✅ No need to deploy code just to update schema
+- ✅ Simple push-based workflow for rapid development
 
 ## Key Files
 
@@ -123,8 +121,7 @@ All secrets are stored in Vercel environment variables:
 
 ## Domain Configuration
 
-- **Current**: Using default Vercel deployment URL
-- **Planned**: Custom domain `holy-grail-api.chuggs.net` via AWS Route53 CNAME record
+- **Current**: Custom domain `holy-grail-api.chuggs.net` via AWS Route53 CNAME record
 - **Setup**: Route53 → CNAME → Vercel deployment URL
 
 ## Database
@@ -145,9 +142,7 @@ All secrets are stored in Vercel environment variables:
 
 ## OAuth Configuration
 
-OAuth callback URLs will need to be updated once domain routing is finalized:
+OAuth callback URLs are configured for the deployed domain:
 
 - **Google**: `https://holy-grail-api.chuggs.net/auth/google/callback`
 - **Discord**: `https://holy-grail-api.chuggs.net/auth/discord/callback`
-
-_Note: Currently working through routing configuration for custom domain setup._

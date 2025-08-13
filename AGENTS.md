@@ -3,7 +3,7 @@
 ## Build/Lint/Test Commands
 
 - `pnpm dev` - Start development server with hot reload
-- `pnpm build` - Build TypeScript to dist/
+- `pnpm build:vercel` - Build for Vercel deployment (TypeScript check only)
 - `pnpm lint` - Run ESLint on src/
 - `pnpm lint:fix` - Auto-fix ESLint issues
 - `pnpm format` - Format code with Prettier
@@ -24,14 +24,14 @@
 
 ## Database
 
-- Use `pnpm db:generate` to generate migrations
-- Use `pnpm db:migrate` to apply migrations
+- Use `pnpm db:generate` to generate migration files (optional, for versioned migrations)
+- Use `pnpm db:migrate` to push schema changes directly to database
 - **Production**: Neon PostgreSQL
 - **Local Development**: Docker PostgreSQL available (`pnpm db:start`, `pnpm db:stop`, etc.)
-- Secrets stored in AWS Parameter Store under `/holy-grail/prod/`
+- Secrets stored in Vercel environment variables
 
 ## Deployment
 
-- `pnpm build` - Build for deployment
-- `sam build` - Build SAM application
-- `sam deploy` - Deploy to AWS
+- `vercel --prod` - Deploy to production
+- `pnpm build:vercel` - Build for Vercel (TypeScript check only)
+- Vercel handles serverless function bundling automatically
