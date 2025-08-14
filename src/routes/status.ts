@@ -33,11 +33,10 @@ export async function statusRoutes(fastify: FastifyInstance) {
                 const sql = neon(process.env.DATABASE_URL!);
                 await sql`SELECT 1`; // Simple connectivity test
 
-                // Run cleanup in background without blocking health check
-                cleanupExpiredOAuthStates().catch((err) =>
+                await cleanupExpiredOAuthStates().catch((err) =>
                     console.warn("OAuth cleanup failed:", err)
                 );
-                cleanupExpiredSessions().catch((err) =>
+                await cleanupExpiredSessions().catch((err) =>
                     console.warn("Session cleanup failed:", err)
                 );
 
