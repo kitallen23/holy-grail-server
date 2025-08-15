@@ -30,6 +30,13 @@ jobs:
             - name: Install Vercel CLI
               run: pnpm add -g vercel
 
+            - name: Debug Vercel setup
+              run: |
+                  vercel whoami
+                  vercel project ls
+              env:
+                  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
             - name: Deploy to Vercel
               run: vercel --prod
               env:
