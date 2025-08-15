@@ -54,5 +54,7 @@ export async function invalidateSession(sessionId: string) {
 }
 
 export async function cleanupExpiredSessions() {
-    await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
+    const result = await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
+    console.info(`Cleaned up ${result.rowCount || 0} expired sessions`);
+    return result;
 }

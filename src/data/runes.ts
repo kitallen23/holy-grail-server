@@ -1,4 +1,4 @@
-import type { Rune } from "../types/items";
+import type { Rune } from "../types/items.js";
 
 const runes: Record<string, Rune> = {
     El: {

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, boolean, varchar } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
     id: text("id").primaryKey(),
@@ -24,4 +24,10 @@ export const userItems = pgTable("user_items", {
     itemKey: text("item_key").notNull(),
     found: boolean("found").default(false).notNull(),
     foundAt: timestamp("found_at"),
+});
+
+export const oauthStates = pgTable("oauth_states", {
+    state: varchar("state", { length: 36 }).primaryKey(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
 });

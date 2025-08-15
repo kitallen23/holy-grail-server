@@ -1,4 +1,4 @@
-import type { Runewords } from "../types/items";
+import type { Runewords } from "../types/items.js";
 
 const runewords: Runewords = {
     "Ancient's Pledge": {

@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/items/Blinkbat%27s%20Form
+  url: {{baseUrl}}/items/:itemKey
   body: none
   auth: inherit
+}
+
+params:path {
+  itemKey: Blinkbat's Form
 }

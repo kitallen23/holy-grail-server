@@ -3,21 +3,27 @@ import { requireAuth } from "../middleware/auth.js";
 import { db } from "../db/index.js";
 import { userItems } from "../db/schema.js";
 import { eq, and, inArray } from "drizzle-orm";
-import { items } from "../data/items.js";
 import { HttpError } from "../types/errors.js";
 
 export async function userItemsRoutes(fastify: FastifyInstance) {
     // Get user's grail items
-    fastify.get("/", { preHandler: requireAuth }, async (request) => {
+    fastify.get("/", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const userId = request.user!.id;
-
         const foundItems = await db.select().from(userItems).where(eq(userItems.userId, userId));
-
-        return { items: foundItems };
+        const response = { items: foundItems };
+        return response;
     });
 
     // Mark item as found/unfound
-    fastify.post("/set", { preHandler: requireAuth }, async (request) => {
+    fastify.post("/set", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const { itemKey, found } = request.body as { itemKey: string; found: boolean };
         const userId = request.user!.id;
 
@@ -44,6 +50,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             }
         } else {
             // First, check that the item actually exists
+            const { items } = await import("../data/items.js");
             const allItemKeys = Object.keys(items.uniqueItems)
                 .concat(Object.keys(items.setItems))
                 .concat(Object.keys(items.runes));
@@ -63,13 +70,18 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         return { success: true, found };
     });
 
-    fastify.post("/set-bulk", { preHandler: requireAuth }, async (request) => {
+    fastify.post("/set-bulk", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const { items: itemsToImport } = request.body as {
             items: { itemKey: string; foundAt?: string; found: boolean }[];
         };
         const userId = request.user!.id;
 
         // Validate all item keys exist
+        const { items } = await import("../data/items.js");
         const allItemKeys = Object.keys(items.uniqueItems)
             .concat(Object.keys(items.setItems))
             .concat(Object.keys(items.runes));
@@ -84,7 +96,9 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
             .from(userItems)
             .where(and(eq(userItems.userId, userId), inArray(userItems.itemKey, itemKeys)));
 
-        const existingMap = new Map(existing.map((record) => [record.itemKey, record]));
+        const existingMap = new Map<string, typeof userItems.$inferSelect>(
+            existing.map((record: typeof userItems.$inferSelect) => [record.itemKey, record])
+        );
 
         const itemsToInsert: {
             userId: string;
@@ -95,11 +109,14 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
 
         const itemsToUpdate: {
             id: string;
+            found: boolean;
             foundAt: Date;
         }[] = [];
 
         for (const item of validItemsToImport) {
-            const existingRecord = existingMap.get(item.itemKey);
+            const existingRecord: typeof userItems.$inferSelect | undefined = existingMap.get(
+                item.itemKey
+            );
 
             if (!existingRecord) {
                 // Item not in DB - add it
@@ -113,6 +130,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
                 // Item exists but not found - update it
                 itemsToUpdate.push({
                     id: existingRecord.id,
+                    found: true,
                     foundAt: item.foundAt ? new Date(item.foundAt) : new Date(),
                 });
             }
@@ -125,7 +143,7 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         }
 
         if (itemsToUpdate.length > 0) {
-            await db.transaction(async (tx) => {
+            await db.transaction(async (tx: typeof db) => {
                 const promises = itemsToUpdate.map((updateItem) =>
                     tx
                         .update(userItems)
@@ -150,7 +168,11 @@ export async function userItemsRoutes(fastify: FastifyInstance) {
         };
     });
 
-    fastify.delete("/clear", { preHandler: requireAuth }, async (request) => {
+    fastify.delete("/clear", { preHandler: requireAuth }, async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const userId = request.user!.id;
 
         await db.delete(userItems).where(eq(userItems.userId, userId));

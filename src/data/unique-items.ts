@@ -1,4 +1,4 @@
-import type { UniqueItem } from "../types/items";
+import type { UniqueItem } from "../types/items.js";
 
 const uniqueItems: Record<string, UniqueItem> = {
     Greyform: {

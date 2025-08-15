@@ -7,7 +7,7 @@ import {
     invalidateSession,
 } from "../lib/auth.js";
 import { db } from "../db/index.js";
-import { users } from "../db/schema.js";
+import { users, oauthStates } from "../db/schema.js";
 import { eq, or } from "drizzle-orm";
 import { encodeBase32LowerCaseNoPadding } from "@oslojs/encoding";
 
@@ -19,6 +19,10 @@ function generateUserId(): string {
 
 export async function authRoutes(fastify: FastifyInstance) {
     fastify.get("/me", async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const token = request.cookies.session;
         if (!token) {
             reply.code(401).send({ error: "Not authenticated" });
@@ -31,25 +35,42 @@ export async function authRoutes(fastify: FastifyInstance) {
             return;
         }
 
-        return { email: user.email };
+        const response = { email: user.email };
+        return response;
     });
 
     // Google OAuth initiation
     fastify.get("/google", async (_, reply) => {
         const state = crypto.randomUUID();
-        reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
+
+        // Store state in database instead of cookie
+        await db.insert(oauthStates).values({
+            state,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+        });
+
         reply.redirect(googleAuthURL(state));
     });
 
     // Discord OAuth initiation
     fastify.get("/discord", async (_, reply) => {
         const state = crypto.randomUUID();
-        reply.setCookie("oauth_state", state, { httpOnly: true, maxAge: 600 });
+
+        // Store state in database instead of cookie
+        await db.insert(oauthStates).values({
+            state,
+            expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+        });
+
         reply.redirect(discordAuthURL(state));
     });
 
     // Logout
     fastify.post("/logout", async (request, reply) => {
+        reply.header("Cache-Control", "no-cache, no-store, must-revalidate");
+        reply.header("Pragma", "no-cache");
+        reply.header("Expires", "0");
+
         const token = request.cookies.session;
         if (token) {
             const { session } = await validateSessionToken(token);
@@ -58,45 +79,57 @@ export async function authRoutes(fastify: FastifyInstance) {
             }
         }
 
-        reply.setCookie("session", "", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 0,
-            path: "/",
-        });
+        // Manually set cookie header to clear session cookie
+        const cookieOptions = [
+            "session=",
+            "Max-Age=0",
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Lax",
+            process.env.NODE_ENV === "production" ? "Secure" : "",
+            process.env.NODE_ENV === "production" ? "Domain=.chuggs.net" : "",
+        ]
+            .filter(Boolean)
+            .join("; ");
+
+        reply.header("Set-Cookie", cookieOptions);
 
         return { success: true };
     });
 
     // Google OAuth callback
     fastify.get("/google/callback", async (request, reply) => {
-        const { code, state, error } = request.query as { 
-            code?: string; 
-            state: string; 
-            error?: string; 
+        const { code, state, error } = request.query as {
+            code?: string;
+            state: string;
+            error?: string;
         };
-        const storedState = request.cookies.oauth_state;
-
         // Handle OAuth errors (user cancelled, access denied, etc.)
         if (error) {
-            // Clear the oauth_state cookie
-            reply.setCookie("oauth_state", "", { maxAge: 0 });
-            
             // Redirect back to client with error info
             const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
             const redirectUrl = new URL(clientUrl);
-            redirectUrl.searchParams.set('auth_error', error);
-            redirectUrl.searchParams.set('auth_cancelled', 'true');
-            
+            redirectUrl.searchParams.set("auth_error", error);
+            redirectUrl.searchParams.set("auth_cancelled", "true");
+
             reply.redirect(redirectUrl.toString());
             return;
         }
 
-        if (!state || !storedState || state !== storedState) {
+        // Validate state from database instead of cookie
+        const validState = await db
+            .select()
+            .from(oauthStates)
+            .where(eq(oauthStates.state, state))
+            .limit(1);
+
+        if (!validState.length) {
             reply.code(400);
             return { error: "Invalid state" };
         }
+
+        // Clean up used state immediately
+        await db.delete(oauthStates).where(eq(oauthStates.state, state));
 
         if (!code) {
             reply.code(400);
@@ -152,45 +185,59 @@ export async function authRoutes(fastify: FastifyInstance) {
         const token = generateSessionToken();
         await createSession(token, user[0].id);
 
-        reply.setCookie("session", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 30,
-            path: "/",
-        });
+        // Manually set cookie header to work around Fastify/Vercel serialization issue
+        const cookieOptions = [
+            `session=${token}`,
+            `Max-Age=${60 * 60 * 24 * 30}`,
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Lax",
+            process.env.NODE_ENV === "production" ? "Secure" : "",
+            process.env.NODE_ENV === "production" ? "Domain=.chuggs.net" : "",
+        ]
+            .filter(Boolean)
+            .join("; ");
 
-        reply.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+        reply.header("Set-Cookie", cookieOptions);
+
+        const redirectUrl = process.env.CLIENT_URL || "http://localhost:5173";
+        reply.redirect(redirectUrl);
     });
 
     // Discord OAuth callback
     fastify.get("/discord/callback", async (request, reply) => {
-        const { code, state, error } = request.query as { 
-            code?: string; 
-            state: string; 
-            error?: string; 
+        const { code, state, error } = request.query as {
+            code?: string;
+            state: string;
+            error?: string;
         };
-        const storedState = request.cookies.oauth_state;
 
         // Handle OAuth errors (user cancelled, access denied, etc.)
         if (error) {
-            // Clear the oauth_state cookie
-            reply.setCookie("oauth_state", "", { maxAge: 0 });
-            
             // Redirect back to client with error info
             const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
             const redirectUrl = new URL(clientUrl);
-            redirectUrl.searchParams.set('auth_error', error);
-            redirectUrl.searchParams.set('auth_cancelled', 'true');
-            
+            redirectUrl.searchParams.set("auth_error", error);
+            redirectUrl.searchParams.set("auth_cancelled", "true");
+
             reply.redirect(redirectUrl.toString());
             return;
         }
 
-        if (!state || !storedState || state !== storedState) {
+        // Validate state from database
+        const validState = await db
+            .select()
+            .from(oauthStates)
+            .where(eq(oauthStates.state, state))
+            .limit(1);
+
+        if (!validState.length) {
             reply.code(400);
             return { error: "Invalid state" };
         }
+
+        // Clean up used state immediately
+        await db.delete(oauthStates).where(eq(oauthStates.state, state));
 
         if (!code) {
             reply.code(400);
@@ -246,14 +293,22 @@ export async function authRoutes(fastify: FastifyInstance) {
         const token = generateSessionToken();
         await createSession(token, user[0].id);
 
-        reply.setCookie("session", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 30,
-            path: "/",
-        });
+        // Manually set cookie header to work around Fastify/Vercel serialization issue
+        const cookieOptions = [
+            `session=${token}`,
+            `Max-Age=${60 * 60 * 24 * 30}`,
+            "Path=/",
+            "HttpOnly",
+            "SameSite=Lax",
+            process.env.NODE_ENV === "production" ? "Secure" : "",
+            process.env.NODE_ENV === "production" ? "Domain=.chuggs.net" : "",
+        ]
+            .filter(Boolean)
+            .join("; ");
 
-        reply.redirect(process.env.CLIENT_URL || "http://localhost:5173");
+        reply.header("Set-Cookie", cookieOptions);
+
+        const redirectUrl = process.env.CLIENT_URL || "http://localhost:5173";
+        reply.redirect(redirectUrl);
     });
 }

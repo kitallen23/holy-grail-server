@@ -1,4 +1,4 @@
-import type { SetItem } from "../types/items";
+import type { SetItem } from "../types/items.js";
 
 const setItems: Record<string, SetItem> = {
     "Angelic Sickle": {

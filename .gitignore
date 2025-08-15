@@ -54,3 +54,5 @@ bruno/environments/production.bru
 # Temporary files
 *.tmp
 *.temp
+
+.vercel

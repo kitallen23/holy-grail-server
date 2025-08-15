@@ -1,4 +1,4 @@
-import { BaseItem } from "../types/items";
+import { BaseItem } from "../types/items.js";
 
 const BaseItems: Record<string, BaseItem> = {
     // Axes
