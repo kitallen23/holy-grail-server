@@ -30,10 +30,5 @@ jobs:
             - name: Install Vercel CLI
               run: npm install -g vercel
 
-            - name: Debug Vercel setup
-              run: |
-                  vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
-                  vercel project ls --token ${{ secrets.VERCEL_TOKEN }}
-
             - name: Deploy to Vercel
-              run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --org ${{ vars.VERCEL_ORG_ID }} --project ${{ vars.VERCEL_PROJECT_ID }}
+              run: vercel --prod --yes --token ${{ secrets.VERCEL_TOKEN }} --scope ${{ vars.VERCEL_ORG_ID }}
