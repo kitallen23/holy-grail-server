@@ -62,7 +62,7 @@ vercel --prod
 vercel logs [deployment-url]
 ```
 
-**Build Process Note:** The `pnpm run build:vercel` command only runs TypeScript type checking since Vercel handles the serverless function bundling automatically.
+**Build Process Note:** The `pnpm run vercel:build` command only runs TypeScript type checking since Vercel handles the serverless function bundling automatically.
 
 ## Database Migrations
 

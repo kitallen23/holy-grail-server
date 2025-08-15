@@ -7,7 +7,6 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "tsc && cp package.json dist/",
-        "build:vercel": "pnpm typecheck",
         "start": "node dist/server.js",
         "test": "echo \"Error: no test specified\" && exit 1",
         "format": "prettier --write .",
@@ -23,6 +22,7 @@
         "db:restart": "docker restart d2-postgres",
         "db:logs": "docker logs d2-postgres -f",
         "dev:full": "pnpm db:start && pnpm dev",
+        "vercel:build": "pnpm typecheck",
         "vercel:dev": "vercel dev",
         "vercel:deploy": "vercel --prod",
         "vercel:preview": "vercel"

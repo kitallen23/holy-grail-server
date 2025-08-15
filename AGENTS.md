@@ -3,7 +3,7 @@
 ## Build/Lint/Test Commands
 
 - `pnpm dev` - Start development server with hot reload
-- `pnpm build:vercel` - Build for Vercel deployment (TypeScript check only)
+- `pnpm vercel:build` - Build for Vercel deployment (TypeScript check only)
 - `pnpm lint` - Run ESLint on src/
 - `pnpm lint:fix` - Auto-fix ESLint issues
 - `pnpm format` - Format code with Prettier
@@ -33,5 +33,5 @@
 ## Deployment
 
 - `vercel --prod` - Deploy to production
-- `pnpm build:vercel` - Build for Vercel (TypeScript check only)
+- `pnpm vercel:build` - Build for Vercel (TypeScript check only)
 - Vercel handles serverless function bundling automatically
