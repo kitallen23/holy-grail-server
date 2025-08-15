@@ -28,18 +28,12 @@ jobs:
               run: pnpm check
 
             - name: Install Vercel CLI
-              run: pnpm add -g vercel
+              run: npm install -g vercel
 
             - name: Debug Vercel setup
               run: |
-                  vercel whoami
-                  vercel project ls
-              env:
-                  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+                  vercel whoami --token ${{ secrets.VERCEL_TOKEN }}
+                  vercel project ls --token ${{ secrets.VERCEL_TOKEN }}
 
             - name: Deploy to Vercel
-              run: vercel --prod
-              env:
-                  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-                  VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
-                  VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+              run: vercel --prod --token ${{ secrets.VERCEL_TOKEN }} --org ${{ vars.VERCEL_ORG_ID }} --project ${{ vars.VERCEL_PROJECT_ID }}
